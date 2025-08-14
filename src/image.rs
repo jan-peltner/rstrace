@@ -1,6 +1,4 @@
-use crate::v3::V3;
-
-pub type Pixel = V3;
+use crate::v3::*;
 
 pub struct Image {
     pub width: u32,

@@ -1,7 +1,9 @@
 mod image;
+mod ray;
 mod v3;
 
 use image::*;
+use v3::*;
 
 fn main() {
     let image = Image::new(256, 256, |x, y| {
