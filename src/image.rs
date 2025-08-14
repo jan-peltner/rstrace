@@ -7,6 +7,16 @@ pub struct Image {
 }
 
 impl Image {
+    pub const MAX_RGB: f64 = 255.99;
+
+    pub fn compute_height(w: u32, ar: f64) -> u32 {
+        (if w as f64 / ar < 1.0 {
+            1.0
+        } else {
+            w as f64 / ar
+        }) as u32
+    }
+
     pub fn new(w: u32, h: u32, pxfn: impl Fn(u32, u32) -> Pixel) -> Self {
         let mut pixels: Vec<Vec<Pixel>> = Vec::with_capacity(h as usize);
         for y in 0..h {
@@ -32,11 +42,7 @@ impl std::fmt::Display for Image {
 
         for row in &self.pixels {
             for pixel in row {
-                write!(
-                    f,
-                    "{} {} {} ",
-                    pixel.x as u64, pixel.y as u64, pixel.z as u64
-                )?
+                write!(f, "{} {} {} ", pixel.x as u8, pixel.y as u8, pixel.z as u8)?
             }
             write!(f, "\n")?;
         }
