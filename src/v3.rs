@@ -1,4 +1,5 @@
 /// Three-dimensional vector that's used for points, colors, offsets etc.
+#[derive(Clone)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -25,6 +26,10 @@ impl Vec3 {
 
     pub fn len(&self) -> f64 {
         self.len_sqr().sqrt()
+    }
+
+    pub fn norm(&self) -> Self {
+        self / self.len()
     }
 }
 

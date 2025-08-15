@@ -1,9 +1,6 @@
-mod image;
-mod ray;
-mod v3;
-
-use image::*;
-use v3::*;
+use rstrace::image::*;
+use rstrace::ray::Ray3;
+use rstrace::v3::*;
 
 fn main() {
     // --- Image dimensions ---
@@ -51,6 +48,14 @@ fn main() {
     let pixel_00_pos = &vp_upper_left + &((&pixel_delta_u + &pixel_delta_v) * 0.5);
 
     let image = Image::new(img_w, img_h, |x, y| {
+        let pixel_center =
+            (&pixel_00_pos + &(&pixel_delta_u * x as f64)) + (&pixel_delta_v * y as f64);
+        let ray_dir = (&pixel_center - &camera_center).norm();
+        let r = Ray3 {
+            origin: camera_center.clone(),
+            dir: ray_dir,
+        };
+
         let w = img_w as f64 - 1.0;
         let h = img_h as f64 - 1.0;
 
