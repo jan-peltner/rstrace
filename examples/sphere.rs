@@ -57,6 +57,11 @@ fn main() {
 
     // Inset the pixel grid by half a unit from the viewport edges
     let pixel_00_pos = &vp_upper_left + &((&pixel_delta_u + &pixel_delta_v) * 0.5);
+    let sphere_center = Point3 {
+        x: 0.0,
+        y: 0.0,
+        z: -1.0,
+    };
 
     // --- Render ---
     let image = Image::new(img_w, img_h, |x, y| {
@@ -68,15 +73,7 @@ fn main() {
             dir: ray_dir,
         };
 
-        let has_hit_sphere = hit_sphere(
-            &Point3 {
-                x: 0.0,
-                y: 0.0,
-                z: -1.0,
-            },
-            0.5,
-            &r,
-        );
+        let has_hit_sphere = hit_sphere(&sphere_center, 0.5, &r);
 
         if has_hit_sphere {
             return Pixel {
