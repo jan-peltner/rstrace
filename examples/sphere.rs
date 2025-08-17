@@ -3,6 +3,16 @@ use rstrace::ray::Ray3;
 use rstrace::utils::lerp;
 use rstrace::v3::*;
 
+fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray3) -> bool {
+    let q_minus_c = &ray.origin - center;
+    let a = ray.dir.dot(&ray.dir);
+    let b = (&ray.dir * 2.0).dot(&q_minus_c);
+    let c = &q_minus_c.dot(&q_minus_c) - radius * radius;
+
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant >= 0.0
+}
+
 fn main() {
     // --- Image dimensions ---
     let img_w = 400;
@@ -58,13 +68,31 @@ fn main() {
             dir: ray_dir,
         };
 
-        let t = 0.5 * (r.dir.y + 1.0);
+        let has_hit_sphere = hit_sphere(
+            &Point3 {
+                x: 0.0,
+                y: 0.0,
+                z: -1.0,
+            },
+            0.5,
+            &r,
+        );
 
-        return Pixel {
-            x: lerp(1.0, 0.5, t) * 255.99,
-            y: lerp(1.0, 0.7, t) * 255.99,
-            z: 1.0 * 255.99,
-        };
+        if has_hit_sphere {
+            return Pixel {
+                x: 255.99,
+                y: 0.0,
+                z: 0.0,
+            };
+        } else {
+            let t = 0.5 * (r.dir.y + 1.0);
+
+            return Pixel {
+                x: lerp(1.0, 0.5, t) * 255.99,
+                y: lerp(1.0, 0.7, t) * 255.99,
+                z: 1.0 * 255.99,
+            };
+        }
     });
 
     println!("{}", image);
