@@ -31,6 +31,10 @@ impl Vec3 {
     pub fn norm(&self) -> Self {
         self / self.len()
     }
+
+    pub fn dot(&self, rhs: &Self) -> f64 {
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
+    }
 }
 
 impl std::ops::Add for Vec3 {
