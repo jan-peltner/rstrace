@@ -78,13 +78,15 @@ fn main() {
             dir: ray_dir,
         };
 
-        let has_hit_sphere = hit_sphere(&sphere_center, 0.5, &r);
+        let t = hit_sphere(&sphere_center, 0.5, &r);
 
-        if has_hit_sphere >= 0.0 {
+        if t >= 0.0 {
+            let sphere_normal = (&r.at(t) - &sphere_center).norm();
+
             return Pixel {
-                x: 255.99,
-                y: 0.0,
-                z: 0.0,
+                x: (sphere_normal.x + 1.0) * 255.99 * 0.5,
+                y: (sphere_normal.y + 1.0) * 255.99 * 0.5,
+                z: (sphere_normal.z + 1.0) * 255.99 * 0.5,
             };
         } else {
             let t = 0.5 * (r.dir.y + 1.0);
