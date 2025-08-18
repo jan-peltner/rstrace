@@ -1,5 +1,5 @@
 use rstrace::image::*;
-use rstrace::v3::*;
+use rstrace::vec::*;
 
 fn main() {
     // --- Image dimensions ---

@@ -1,7 +1,7 @@
 use rstrace::image::*;
 use rstrace::ray::Ray3;
 use rstrace::utils::lerp;
-use rstrace::v3::*;
+use rstrace::vec::*;
 
 fn main() {
     // --- Image dimensions ---

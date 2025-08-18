@@ -1,4 +1,4 @@
-use crate::v3::*;
+use crate::vec::*;
 
 pub struct Image {
     pub width: u32,

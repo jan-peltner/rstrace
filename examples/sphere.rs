@@ -1,7 +1,7 @@
 use rstrace::image::*;
 use rstrace::ray::Ray3;
 use rstrace::utils::lerp;
-use rstrace::v3::*;
+use rstrace::vec::*;
 
 fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray3) -> f64 {
     let q_minus_c = &ray.origin - center;

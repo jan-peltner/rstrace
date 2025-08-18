@@ -1,4 +1,4 @@
-use crate::v3::{Point3, Vec3};
+use crate::vec::{Point3, Vec3};
 
 /// Ray in 3d space. A ray has an origin point `P3` and a direction `V3`.
 pub struct Ray3 {
