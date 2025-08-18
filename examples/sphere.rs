@@ -3,14 +3,19 @@ use rstrace::ray::Ray3;
 use rstrace::utils::lerp;
 use rstrace::v3::*;
 
-fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray3) -> bool {
+fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray3) -> f64 {
     let q_minus_c = &ray.origin - center;
     let a = ray.dir.dot(&ray.dir);
     let b = (&ray.dir * 2.0).dot(&q_minus_c);
     let c = &q_minus_c.dot(&q_minus_c) - radius * radius;
 
     let discriminant = b * b - 4.0 * a * c;
-    discriminant >= 0.0
+
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        (-b - discriminant.sqrt()) / (2.0 * a)
+    }
 }
 
 fn main() {
@@ -75,7 +80,7 @@ fn main() {
 
         let has_hit_sphere = hit_sphere(&sphere_center, 0.5, &r);
 
-        if has_hit_sphere {
+        if has_hit_sphere >= 0.0 {
             return Pixel {
                 x: 255.99,
                 y: 0.0,
