@@ -36,10 +36,21 @@ impl Hittable for Sphere {
 
         let intersection_point = ray.at(eval);
 
+        // Dividing by radius normalizes the vector -> more performant than calling .norm()
+        let outward_normal = (&intersection_point - &self.center) / self.radius;
+
         return Some(Hit {
             p: intersection_point.clone(),
             t: eval,
-            normal: (&intersection_point - &self.center).norm(),
+            // Determine if the ray is hitting the front face or back face of the sphere.
+            // A front face hit occurs when the ray's direction is generally opposite to the
+            // surface's inherent outward normal. A back face hit occurs when they are generally
+            // in the same direction (meaning the ray is inside the object and trying to exit)
+            normal: if ray.dir.dot(&outward_normal) < 0.0 {
+                outward_normal
+            } else {
+                outward_normal * -1.0
+            },
         });
     }
 }
