@@ -1,22 +1,8 @@
+use rstrace::geometry::Sphere;
 use rstrace::image::*;
-use rstrace::ray::Ray3;
+use rstrace::ray::{Hittable, Ray3};
 use rstrace::utils::lerp;
 use rstrace::vec::*;
-
-fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray3) -> f64 {
-    let q_minus_c = &ray.origin - center;
-    let a = ray.dir.dot(&ray.dir);
-    let b = (&ray.dir * 2.0).dot(&q_minus_c);
-    let c = &q_minus_c.dot(&q_minus_c) - radius * radius;
-
-    let discriminant = b * b - 4.0 * a * c;
-
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-b - discriminant.sqrt()) / (2.0 * a)
-    }
-}
 
 fn main() {
     // --- Image dimensions ---
@@ -62,12 +48,14 @@ fn main() {
 
     // Inset the pixel grid by half a unit from the viewport edges
     let pixel_00_pos = &vp_upper_left + &((&pixel_delta_u + &pixel_delta_v) * 0.5);
-    let sphere_center = Point3 {
-        x: 0.0,
-        y: 0.0,
-        z: -1.0,
+    let sphere = Sphere {
+        center: Point3 {
+            x: 0.0,
+            y: 0.0,
+            z: -1.0,
+        },
+        radius: 0.5,
     };
-
     // --- Render ---
     let image = Image::new(img_w, img_h, |x, y| {
         let pixel_center =
@@ -78,24 +66,20 @@ fn main() {
             dir: ray_dir,
         };
 
-        let t = hit_sphere(&sphere_center, 0.5, &r);
-
-        if t >= 0.0 {
-            let sphere_normal = (&r.at(t) - &sphere_center).norm();
-
-            return Pixel {
-                x: (sphere_normal.x + 1.0) * 255.99 * 0.5,
-                y: (sphere_normal.y + 1.0) * 255.99 * 0.5,
-                z: (sphere_normal.z + 1.0) * 255.99 * 0.5,
-            };
+        if let Some(hit) = sphere.hit(&r, 0.0, 100.0) {
+            Pixel {
+                x: (hit.normal.x + 1.0) * 255.99 * 0.5,
+                y: (hit.normal.y + 1.0) * 255.99 * 0.5,
+                z: (hit.normal.z + 1.0) * 255.99 * 0.5,
+            }
         } else {
             let t = 0.5 * (r.dir.y + 1.0);
 
-            return Pixel {
+            Pixel {
                 x: lerp(1.0, 0.5, t) * 255.99,
                 y: lerp(1.0, 0.7, t) * 255.99,
                 z: 1.0 * 255.99,
-            };
+            }
         }
     });
 
