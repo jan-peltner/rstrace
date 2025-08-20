@@ -1,6 +1,6 @@
-use rstrace::geometry::{Hittables, Sphere};
+use rstrace::geometry::Sphere;
 use rstrace::image::*;
-use rstrace::ray::{Hittable, Ray3};
+use rstrace::ray::{Hittables, Ray3};
 use rstrace::utils::lerp;
 use rstrace::vec::*;
 

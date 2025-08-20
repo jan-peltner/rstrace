@@ -54,22 +54,3 @@ impl Hittable for Sphere {
         });
     }
 }
-
-pub struct Hittables {
-    pub objects: Vec<Box<dyn Hittable>>,
-}
-
-impl Hittables {
-    pub fn check_hit(&self, ray: &Ray3, tmin: f64, tmax: f64) -> Option<Hit> {
-        let mut closest_hit: Option<Hit> = None;
-        let mut closest_hit_t: f64 = tmax;
-
-        for hittable in self.objects.iter() {
-            if let Some(hit) = hittable.hit(ray, tmin, closest_hit_t) {
-                closest_hit_t = hit.t;
-                closest_hit = Some(hit);
-            }
-        }
-        closest_hit
-    }
-}
