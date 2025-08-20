@@ -1,7 +1,7 @@
 use rstrace::geometry::Sphere;
 use rstrace::image::*;
 use rstrace::ray::{Hittables, Ray3};
-use rstrace::utils::lerp;
+use rstrace::utils::{lerp, Interval};
 use rstrace::vec::*;
 
 fn main() {
@@ -81,7 +81,11 @@ fn main() {
             dir: ray_dir,
         };
 
-        if let Some(hit) = world.check_hit(&r, 0.0, 100.0) {
+        let mut t_range = Interval {
+            min: 0.0,
+            max: 100.0,
+        };
+        if let Some(hit) = world.check_hit(&r, &mut t_range) {
             Pixel {
                 x: (hit.normal.x + 1.0) * 255.99 * 0.5,
                 y: (hit.normal.y + 1.0) * 255.99 * 0.5,

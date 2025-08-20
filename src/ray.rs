@@ -1,4 +1,7 @@
-use crate::vec::{Point3, Vec3};
+use crate::{
+    utils::Interval,
+    vec::{Point3, Vec3},
+};
 
 /// Ray in 3d space. A ray has an origin point `P3` and a direction `V3`.
 #[derive(Clone)]
@@ -20,7 +23,7 @@ pub struct Hit {
 }
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray3, tmin: f64, tmax: f64) -> Option<Hit>;
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit>;
 }
 
 pub struct Hittables {
@@ -28,13 +31,12 @@ pub struct Hittables {
 }
 
 impl Hittables {
-    pub fn check_hit(&self, ray: &Ray3, tmin: f64, tmax: f64) -> Option<Hit> {
+    pub fn check_hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
         let mut closest_hit: Option<Hit> = None;
-        let mut closest_hit_t: f64 = tmax;
 
         for hittable in self.objects.iter() {
-            if let Some(hit) = hittable.hit(ray, tmin, closest_hit_t) {
-                closest_hit_t = hit.t;
+            if let Some(hit) = hittable.hit(ray, t_range) {
+                t_range.max = hit.t;
                 closest_hit = Some(hit);
             }
         }
