@@ -1,3 +1,5 @@
+use rand::Rng;
+
 /// Three-dimensional vector that's used for points, colors, offsets etc.
 #[derive(Clone)]
 pub struct Vec3 {
@@ -6,7 +8,7 @@ pub struct Vec3 {
     pub z: f64,
 }
 
-/// Pixel that's used to render an image
+/// Pixel that's used to render an image pub type Pixel = Vec3;
 pub type Pixel = Vec3;
 /// Point in 3d space
 pub type Point3 = Vec3;
@@ -16,6 +18,17 @@ impl Vec3 {
         Vec3 {
             x: 0.0,
             y: 0.0,
+            z: 0.0,
+        }
+    }
+
+    // maybe initialize the rng outside of the function?
+    pub fn unit_square_offset() -> Self {
+        let mut thread_rng = rand::rng();
+
+        Vec3 {
+            x: thread_rng.random_range(-0.5..0.5),
+            y: thread_rng.random_range(-0.5..0.5),
             z: 0.0,
         }
     }

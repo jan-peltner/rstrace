@@ -5,7 +5,7 @@ use rstrace::vec::*;
 
 fn main() {
     // --- Camera ---
-    let camera = Camera::new(400, 16.0 / 9.0, Point3::zero());
+    let camera = Camera::new(1600, 16.0 / 9.0, Point3::zero(), 10);
 
     // --- World ---
     let central_sphere = Box::from(Sphere {

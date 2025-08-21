@@ -12,10 +12,11 @@ pub struct Camera {
     px00: Point3,
     px_delta_u: Vec3,
     px_delta_v: Vec3,
+    rays_per_pixel: usize,
 }
 
 impl Camera {
-    pub fn new(img_w: u32, ar: f64, center: Point3) -> Self {
+    pub fn new(img_w: u32, ar: f64, camera_center: Point3, rays_per_pixel: usize) -> Self {
         let img_h = Image::compute_height(img_w, ar);
 
         let focal_length = 1.0; // Distance from camera to the viewport in world units
@@ -38,13 +39,15 @@ impl Camera {
             z: 0.0,
         };
 
-        // Pixel spacing -> amount of wolrd units that one viewport pixel takes up
+        // Pixel spacing -> the amount of world units that one image pixel takes up on the viewport
+        // Multiplying the pixel coordinates (i, j) by these deltas moves us to the
+        // corresponding location on the viewport plan
         let px_delta_u = &vp_u / img_w as f64;
         let px_delta_v = &vp_v / img_h as f64;
 
         // Move -1 on the z-axis to reach the viewport plane, move half of the viewport width to the
         // left, move half of the viewport height up
-        let vp_upper_left = &center
+        let vp_upper_left = &camera_center
             - &Vec3 {
                 x: 0.0,
                 y: 0.0,
@@ -59,44 +62,54 @@ impl Camera {
         Camera {
             img_w,
             img_h,
-            center,
+            center: camera_center,
             px00,
             px_delta_u,
             px_delta_v,
+            rays_per_pixel,
         }
     }
 
     pub fn render(&self, world: Hittables) {
         let image = Image::new(self.img_w, self.img_h, |x, y| {
-            let pixel_center =
-                (&self.px00 + &(&self.px_delta_u * x as f64)) + (&self.px_delta_v * y as f64);
-            let ray_dir = (&pixel_center - &self.center).norm();
-            let r = Ray3 {
-                origin: self.center.clone(),
-                dir: ray_dir,
-            };
+            let mut px = Pixel::zero();
 
-            let mut t_range = Interval {
-                min: 0.0,
-                max: 100.0,
-            };
-            if let Some(hit) = world.check_hit(&r, &mut t_range) {
-                Pixel {
-                    x: (hit.normal.x + 1.0) * 255.99 * 0.5,
-                    y: (hit.normal.y + 1.0) * 255.99 * 0.5,
-                    z: (hit.normal.z + 1.0) * 255.99 * 0.5,
-                }
-            } else {
-                let t = 0.5 * (r.dir.y + 1.0);
+            for _ in 0..self.rays_per_pixel {
+                let r = self.get_ray(x, y); // was `ray` but you used `r` later
+                let mut t_range = Interval {
+                    min: 0.0,
+                    max: 100.0,
+                };
 
-                Pixel {
-                    x: lerp(1.0, 0.5, t) * 255.99,
-                    y: lerp(1.0, 0.7, t) * 255.99,
-                    z: 1.0 * 255.99,
+                if let Some(hit) = world.check_hit(&r, &mut t_range) {
+                    px.x += (hit.normal.x + 1.0) * 255.99 * 0.5;
+                    px.y += (hit.normal.y + 1.0) * 255.99 * 0.5;
+                    px.z += (hit.normal.z + 1.0) * 255.99 * 0.5;
+                } else {
+                    let interpolant = 0.5 * (r.dir.y + 1.0);
+                    px.x += lerp(1.0, 0.5, interpolant) * 255.99;
+                    px.y += lerp(1.0, 0.7, interpolant) * 255.99;
+                    px.z += 1.0 * 255.99;
                 }
             }
+
+            px / self.rays_per_pixel as f64
         });
 
         println!("{}", image);
+    }
+
+    fn get_ray(&self, i: u32, j: u32) -> Ray3 {
+        let square_offset = Vec3::unit_square_offset();
+
+        let px_sample = &(&self.px00 + &(&self.px_delta_u * (i as f64 + square_offset.x)))
+            + &(&self.px_delta_v * (j as f64 + square_offset.y));
+
+        let dir = (&px_sample - &self.center).norm();
+
+        Ray3 {
+            origin: self.center.clone(),
+            dir,
+        }
     }
 }
