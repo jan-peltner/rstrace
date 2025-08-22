@@ -30,6 +30,22 @@ impl Vec3 {
         }
     }
 
+    pub fn rand<R: Rng>(rng: &mut R) -> Self {
+        Vec3 {
+            x: rng.random(),
+            y: rng.random(),
+            z: rng.random(),
+        }
+    }
+
+    pub fn rand_rang<R: Rng>(rng: &mut R, min: f64, max: f64) -> Self {
+        Vec3 {
+            x: rng.random_range(min..max),
+            y: rng.random_range(min..max),
+            z: rng.random_range(min..max),
+        }
+    }
+
     pub fn len_sqr(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }

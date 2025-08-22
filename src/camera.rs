@@ -19,8 +19,8 @@ pub struct Camera<R: Rng> {
     rng: RefCell<R>,
 }
 
-impl Camera<ThreadRng> {
-    pub fn new(img_w: u32, ar: f64, camera_center: Point3, rays_per_pixel: usize) -> Self {
+impl<R: Rng> Camera<R> {
+    pub fn new(img_w: u32, ar: f64, camera_center: Point3, rays_per_pixel: usize, rng: R) -> Self {
         let img_h = Image::compute_height(img_w, ar);
 
         let focal_length = 1.0; // Distance from camera to the viewport in world units
@@ -71,7 +71,7 @@ impl Camera<ThreadRng> {
             px_delta_u,
             px_delta_v,
             rays_per_pixel,
-            rng: RefCell::new(rand::rng()),
+            rng: RefCell::new(rng),
         }
     }
 
@@ -116,5 +116,16 @@ impl Camera<ThreadRng> {
             origin: self.center.clone(),
             dir,
         }
+    }
+}
+
+impl Camera<ThreadRng> {
+    pub fn with_default_rng(
+        img_w: u32,
+        ar: f64,
+        camera_center: Point3,
+        rays_per_pixel: usize,
+    ) -> Camera<ThreadRng> {
+        Camera::new(img_w, ar, camera_center, rays_per_pixel, rand::rng())
     }
 }
