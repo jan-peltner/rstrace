@@ -1,6 +1,4 @@
-use std::cell::RefCell;
-
-use rand::{rngs::ThreadRng, Rng};
+use rand::Rng;
 
 /// Three-dimensional vector that's used for points, colors, offsets etc.
 #[derive(Clone)]
@@ -24,7 +22,7 @@ impl Vec3 {
         }
     }
 
-    pub fn unit_square_offset(rng: &mut ThreadRng) -> Self {
+    pub fn unit_square_offset<R: Rng>(rng: &mut R) -> Self {
         Vec3 {
             x: rng.random_range(-0.5..0.5),
             y: rng.random_range(-0.5..0.5),
