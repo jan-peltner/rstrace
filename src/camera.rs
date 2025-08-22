@@ -4,8 +4,11 @@ use crate::{
     utils::{lerp, Interval},
     vec::{Pixel, Point3, Vec3},
 };
+use rand::{rngs::ThreadRng, Rng};
+use std::cell::RefCell;
 
-pub struct Camera {
+// make Camera generic over R so we can potentially use different rngs later
+pub struct Camera<R: Rng> {
     img_w: u32,
     img_h: u32,
     center: Point3,
@@ -13,9 +16,10 @@ pub struct Camera {
     px_delta_u: Vec3,
     px_delta_v: Vec3,
     rays_per_pixel: usize,
+    rng: RefCell<R>,
 }
 
-impl Camera {
+impl Camera<ThreadRng> {
     pub fn new(img_w: u32, ar: f64, camera_center: Point3, rays_per_pixel: usize) -> Self {
         let img_h = Image::compute_height(img_w, ar);
 
@@ -67,6 +71,7 @@ impl Camera {
             px_delta_u,
             px_delta_v,
             rays_per_pixel,
+            rng: RefCell::new(rand::rng()),
         }
     }
 
@@ -75,18 +80,18 @@ impl Camera {
             let mut px = Pixel::zero();
 
             for _ in 0..self.rays_per_pixel {
-                let r = self.get_ray(x, y); // was `ray` but you used `r` later
+                let ray = self.get_ray(x, y);
                 let mut t_range = Interval {
                     min: 0.0,
                     max: 100.0,
                 };
 
-                if let Some(hit) = world.check_hit(&r, &mut t_range) {
+                if let Some(hit) = world.check_hit(&ray, &mut t_range) {
                     px.x += (hit.normal.x + 1.0) * 255.99 * 0.5;
                     px.y += (hit.normal.y + 1.0) * 255.99 * 0.5;
                     px.z += (hit.normal.z + 1.0) * 255.99 * 0.5;
                 } else {
-                    let interpolant = 0.5 * (r.dir.y + 1.0);
+                    let interpolant = 0.5 * (ray.dir.y + 1.0);
                     px.x += lerp(1.0, 0.5, interpolant) * 255.99;
                     px.y += lerp(1.0, 0.7, interpolant) * 255.99;
                     px.z += 1.0 * 255.99;
@@ -100,7 +105,7 @@ impl Camera {
     }
 
     fn get_ray(&self, i: u32, j: u32) -> Ray3 {
-        let square_offset = Vec3::unit_square_offset();
+        let square_offset = Vec3::unit_square_offset(&mut self.rng.borrow_mut());
 
         let px_sample = &(&self.px00 + &(&self.px_delta_u * (i as f64 + square_offset.x)))
             + &(&self.px_delta_v * (j as f64 + square_offset.y));
