@@ -1,3 +1,4 @@
+use rand::rngs::ThreadRng;
 use rstrace::camera::Camera;
 use rstrace::geometry::Sphere;
 use rstrace::ray::Hittables;
@@ -5,7 +6,7 @@ use rstrace::vec::*;
 
 fn main() {
     // --- Camera ---
-    let camera = Camera::with_default_rng(1600, 16.0 / 9.0, Point3::zero(), 10);
+    let camera = Camera::<ThreadRng>::with_default_rng(1600, 16.0 / 9.0, Point3::zero(), 10);
 
     // --- World ---
     let central_sphere = Box::from(Sphere {

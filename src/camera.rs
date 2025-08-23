@@ -75,6 +75,15 @@ impl<R: Rng> Camera<R> {
         }
     }
 
+    pub fn with_default_rng(
+        img_w: u32,
+        ar: f64,
+        camera_center: Point3,
+        rays_per_pixel: usize,
+    ) -> Camera<ThreadRng> {
+        Camera::new(img_w, ar, camera_center, rays_per_pixel, rand::rng())
+    }
+
     pub fn render(&self, world: Hittables) {
         let image = Image::new(self.img_w, self.img_h, |x, y| {
             let mut px = Pixel::zero();
@@ -116,16 +125,5 @@ impl<R: Rng> Camera<R> {
             origin: self.center.clone(),
             dir,
         }
-    }
-}
-
-impl Camera<ThreadRng> {
-    pub fn with_default_rng(
-        img_w: u32,
-        ar: f64,
-        camera_center: Point3,
-        rays_per_pixel: usize,
-    ) -> Camera<ThreadRng> {
-        Camera::new(img_w, ar, camera_center, rays_per_pixel, rand::rng())
     }
 }
