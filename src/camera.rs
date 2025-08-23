@@ -4,6 +4,7 @@ use crate::{
     utils::{lerp, Interval},
     vec::{Pixel, Point3, Vec3},
 };
+use core::f64;
 use rand::{rngs::ThreadRng, Rng};
 use std::cell::RefCell;
 
@@ -155,12 +156,12 @@ impl<R: Rng> Camera<R> {
         }
 
         let mut t_range = Interval {
-            min: 0.0,
-            max: 100.0,
+            min: 0.001,
+            max: f64::INFINITY,
         };
         if let Some(hit) = world.check_hit(&ray, &mut t_range) {
             let reflection_dir =
-                Vec3::rand_unit_sphere_vec_on_hemisphere(&mut self.rng.borrow_mut(), &hit.normal);
+                &hit.normal + &Vec3::rand_unit_sphere_vec(&mut self.rng.borrow_mut());
 
             return self.color_ray(
                 &Ray3 {
