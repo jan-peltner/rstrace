@@ -1,7 +1,7 @@
 use crate::{
     image::Image,
     ray::{Hittables, Ray3},
-    utils::{lerp, Interval},
+    utils::{lerp, linear_to_gamma, Interval},
     vec::{Pixel, Point3, Vec3},
 };
 use core::f64;
@@ -173,10 +173,15 @@ impl<R: Rng> Camera<R> {
             ) * 0.5;
         } else {
             let interpolant = 0.5 * (ray.dir.y + 1.0);
+
+            let r = lerp(1.0, 0.5, interpolant);
+            let g = lerp(1.0, 0.7, interpolant);
+            let b = 1.0;
+
             return Pixel {
-                x: lerp(1.0, 0.5, interpolant) * 255.99,
-                y: lerp(1.0, 0.7, interpolant) * 255.99,
-                z: 1.0 * 255.99,
+                x: Image::map_to_rgb_space(r),
+                y: Image::map_to_rgb_space(g),
+                z: Image::map_to_rgb_space(b),
             };
         }
     }

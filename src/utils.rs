@@ -2,6 +2,13 @@ pub fn lerp(start: f64, end: f64, t: f64) -> f64 {
     (1.0 - t) * start + end * t
 }
 
+pub fn linear_to_gamma(val: f64) -> f64 {
+    if val <= 0.0 {
+        return 0.0;
+    }
+    val.sqrt()
+}
+
 pub struct Interval {
     pub min: f64,
     pub max: f64,

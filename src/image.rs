@@ -1,4 +1,4 @@
-use crate::vec::*;
+use crate::{utils::Interval, vec::*};
 
 pub struct Image {
     pub width: u32,
@@ -7,7 +7,14 @@ pub struct Image {
 }
 
 impl Image {
-    pub const MAX_RGB: f64 = 255.99;
+    const RGB_INTERVAL: Interval = Interval {
+        min: 0.0,
+        max: 255.99,
+    };
+
+    pub fn map_to_rgb_space(val: f64) -> f64 {
+        Self::RGB_INTERVAL.clamp(val * 255.99)
+    }
 
     pub fn compute_height(w: u32, ar: f64) -> u32 {
         (if w as f64 / ar < 1.0 {
