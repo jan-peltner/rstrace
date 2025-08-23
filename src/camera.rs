@@ -45,7 +45,7 @@ impl<R: Rng> Camera<R> {
 
         // Pixel spacing -> the amount of world units that one image pixel takes up on the viewport
         // Multiplying the pixel coordinates (i, j) by these deltas moves us to the
-        // corresponding location on the viewport plan
+        // corresponding location on the viewport plane
         let px_delta_u = &vp_u / img_w as f64;
         let px_delta_v = &vp_v / img_h as f64;
 
@@ -84,33 +84,74 @@ impl<R: Rng> Camera<R> {
         Camera::new(img_w, ar, camera_center, rays_per_pixel, rand::rng())
     }
 
+    // pub fn render(&self, world: Hittables) {
+    //     let image = Image::new(self.img_w, self.img_h, |x, y| {
+    //         let mut px = Pixel::zero();
+    //
+    //         for _ in 0..self.rays_per_pixel {
+    //             let ray = self.get_ray(x, y);
+    //             let mut t_range = Interval {
+    //                 min: 0.0,
+    //                 max: 100.0,
+    //             };
+    //
+    //             if let Some(hit) = world.check_hit(&ray, &mut t_range) {
+    //                 px.x += (hit.normal.x + 1.0) * 255.99 * 0.5;
+    //                 px.y += (hit.normal.y + 1.0) * 255.99 * 0.5;
+    //                 px.z += (hit.normal.z + 1.0) * 255.99 * 0.5;
+    //             } else {
+    //                 let interpolant = 0.5 * (ray.dir.y + 1.0);
+    //                 px.x += lerp(1.0, 0.5, interpolant) * 255.99;
+    //                 px.y += lerp(1.0, 0.7, interpolant) * 255.99;
+    //                 px.z += 1.0 * 255.99;
+    //             }
+    //         }
+    //
+    //         px / self.rays_per_pixel as f64
+    //     });
+    //
+    //     println!("{}", image);
+    // }
+
     pub fn render(&self, world: Hittables) {
         let image = Image::new(self.img_w, self.img_h, |x, y| {
             let mut px = Pixel::zero();
 
             for _ in 0..self.rays_per_pixel {
                 let ray = self.get_ray(x, y);
-                let mut t_range = Interval {
-                    min: 0.0,
-                    max: 100.0,
-                };
-
-                if let Some(hit) = world.check_hit(&ray, &mut t_range) {
-                    px.x += (hit.normal.x + 1.0) * 255.99 * 0.5;
-                    px.y += (hit.normal.y + 1.0) * 255.99 * 0.5;
-                    px.z += (hit.normal.z + 1.0) * 255.99 * 0.5;
-                } else {
-                    let interpolant = 0.5 * (ray.dir.y + 1.0);
-                    px.x += lerp(1.0, 0.5, interpolant) * 255.99;
-                    px.y += lerp(1.0, 0.7, interpolant) * 255.99;
-                    px.z += 1.0 * 255.99;
-                }
+                px = px + self.color_ray(&ray, &world);
             }
 
             px / self.rays_per_pixel as f64
         });
 
         println!("{}", image);
+    }
+
+    fn color_ray(&self, ray: &Ray3, world: &Hittables) -> Pixel {
+        let mut t_range = Interval {
+            min: 0.0,
+            max: 100.0,
+        };
+        if let Some(hit) = world.check_hit(&ray, &mut t_range) {
+            let reflection_dir =
+                Vec3::rand_unit_sphere_vec_on_hemisphere(&mut self.rng.borrow_mut(), &hit.normal);
+
+            return self.color_ray(
+                &Ray3 {
+                    dir: reflection_dir,
+                    origin: hit.p,
+                },
+                world,
+            ) * 0.5;
+        } else {
+            let interpolant = 0.5 * (ray.dir.y + 1.0);
+            return Pixel {
+                x: lerp(1.0, 0.5, interpolant) * 255.99,
+                y: lerp(1.0, 0.7, interpolant) * 255.99,
+                z: 1.0 * 255.99,
+            };
+        }
     }
 
     fn get_ray(&self, i: u32, j: u32) -> Ray3 {

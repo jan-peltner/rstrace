@@ -38,11 +38,30 @@ impl Vec3 {
         }
     }
 
-    pub fn rand_rang<R: Rng>(rng: &mut R, min: f64, max: f64) -> Self {
+    pub fn rand_range<R: Rng>(rng: &mut R, min: f64, max: f64) -> Self {
         Vec3 {
             x: rng.random_range(min..max),
             y: rng.random_range(min..max),
             z: rng.random_range(min..max),
+        }
+    }
+
+    pub fn rand_unit_sphere_vec<R: Rng>(rng: &mut R) -> Self {
+        loop {
+            let v = Self::rand_range(rng, -1.0, 1.0);
+            let len_sqr = v.len_sqr();
+            if len_sqr <= 1.0 {
+                return v / len_sqr.sqrt();
+            }
+        }
+    }
+
+    pub fn rand_unit_sphere_vec_on_hemisphere<R: Rng>(rng: &mut R, normal: &Vec3) -> Self {
+        let unit_sphere_vec = Self::rand_unit_sphere_vec(rng);
+        if unit_sphere_vec.dot(normal) > 0.0 {
+            unit_sphere_vec
+        } else {
+            unit_sphere_vec * -1.0
         }
     }
 

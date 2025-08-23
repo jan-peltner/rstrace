@@ -3,7 +3,7 @@ use crate::{
     vec::{Point3, Vec3},
 };
 
-/// Ray in 3d space. A ray has an origin point `P3` and a direction `V3`.
+/// Ray in 3d space. A ray has an origin point `Point3` and a direction `Vec3`.
 #[derive(Clone)]
 pub struct Ray3 {
     pub origin: Point3,
