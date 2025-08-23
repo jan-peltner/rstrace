@@ -1,7 +1,7 @@
 use crate::{
     image::Image,
     ray::{Hittables, Ray3},
-    utils::{lerp, linear_to_gamma, Interval},
+    utils::{lerp, Interval},
     vec::{Pixel, Point3, Vec3},
 };
 use core::f64;
@@ -101,35 +101,6 @@ impl<R: Rng> Camera<R> {
             rand::rng(),
         )
     }
-
-    // pub fn render(&self, world: Hittables) {
-    //     let image = Image::new(self.img_w, self.img_h, |x, y| {
-    //         let mut px = Pixel::zero();
-    //
-    //         for _ in 0..self.rays_per_pixel {
-    //             let ray = self.get_ray(x, y);
-    //             let mut t_range = Interval {
-    //                 min: 0.0,
-    //                 max: 100.0,
-    //             };
-    //
-    //             if let Some(hit) = world.check_hit(&ray, &mut t_range) {
-    //                 px.x += (hit.normal.x + 1.0) * 255.99 * 0.5;
-    //                 px.y += (hit.normal.y + 1.0) * 255.99 * 0.5;
-    //                 px.z += (hit.normal.z + 1.0) * 255.99 * 0.5;
-    //             } else {
-    //                 let interpolant = 0.5 * (ray.dir.y + 1.0);
-    //                 px.x += lerp(1.0, 0.5, interpolant) * 255.99;
-    //                 px.y += lerp(1.0, 0.7, interpolant) * 255.99;
-    //                 px.z += 1.0 * 255.99;
-    //             }
-    //         }
-    //
-    //         px / self.rays_per_pixel as f64
-    //     });
-    //
-    //     println!("{}", image);
-    // }
 
     pub fn render(&self, world: Hittables) {
         let image = Image::new(self.img_w, self.img_h, |x, y| {
