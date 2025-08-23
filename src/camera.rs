@@ -15,12 +15,20 @@ pub struct Camera<R: Rng> {
     px00: Point3,
     px_delta_u: Vec3,
     px_delta_v: Vec3,
-    rays_per_pixel: usize,
+    rays_per_pixel: u32,
+    max_bounces: u32,
     rng: RefCell<R>,
 }
 
 impl<R: Rng> Camera<R> {
-    pub fn new(img_w: u32, ar: f64, camera_center: Point3, rays_per_pixel: usize, rng: R) -> Self {
+    pub fn new(
+        img_w: u32,
+        ar: f64,
+        camera_center: Point3,
+        rays_per_pixel: u32,
+        max_bounces: u32,
+        rng: R,
+    ) -> Self {
         let img_h = Image::compute_height(img_w, ar);
 
         let focal_length = 1.0; // Distance from camera to the viewport in world units
@@ -71,6 +79,7 @@ impl<R: Rng> Camera<R> {
             px_delta_u,
             px_delta_v,
             rays_per_pixel,
+            max_bounces,
             rng: RefCell::new(rng),
         }
     }
@@ -79,9 +88,17 @@ impl<R: Rng> Camera<R> {
         img_w: u32,
         ar: f64,
         camera_center: Point3,
-        rays_per_pixel: usize,
+        rays_per_pixel: u32,
+        max_bounces: u32,
     ) -> Camera<ThreadRng> {
-        Camera::new(img_w, ar, camera_center, rays_per_pixel, rand::rng())
+        Camera::new(
+            img_w,
+            ar,
+            camera_center,
+            rays_per_pixel,
+            max_bounces,
+            rand::rng(),
+        )
     }
 
     // pub fn render(&self, world: Hittables) {
@@ -119,7 +136,7 @@ impl<R: Rng> Camera<R> {
 
             for _ in 0..self.rays_per_pixel {
                 let ray = self.get_ray(x, y);
-                px = px + self.color_ray(&ray, &world);
+                px = px + self.color_ray(&ray, &world, self.max_bounces);
             }
 
             px / self.rays_per_pixel as f64
@@ -128,7 +145,15 @@ impl<R: Rng> Camera<R> {
         println!("{}", image);
     }
 
-    fn color_ray(&self, ray: &Ray3, world: &Hittables) -> Pixel {
+    fn color_ray(&self, ray: &Ray3, world: &Hittables, bounces_left: u32) -> Pixel {
+        if bounces_left <= 0 {
+            return Pixel {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            };
+        }
+
         let mut t_range = Interval {
             min: 0.0,
             max: 100.0,
@@ -143,6 +168,7 @@ impl<R: Rng> Camera<R> {
                     origin: hit.p,
                 },
                 world,
+                bounces_left - 1,
             ) * 0.5;
         } else {
             let interpolant = 0.5 * (ray.dir.y + 1.0);
