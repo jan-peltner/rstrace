@@ -65,6 +65,10 @@ impl Vec3 {
         }
     }
 
+    pub fn reflect(&self, normal: &Vec3) -> Self {
+        self + &((normal * self.dot(normal)) * -2.0)
+    }
+
     pub fn len_sqr(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }

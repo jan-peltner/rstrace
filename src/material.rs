@@ -25,3 +25,19 @@ impl Material for Lambertian {
         })
     }
 }
+
+pub struct Metal {
+    pub albedo: Vec3,
+}
+
+impl Material for Metal {
+    fn scatter(&self, incident_ray: &Ray3, hit: &Hit, _rng: &mut dyn RngCore) -> Option<Scatter> {
+        Some(Scatter {
+            attenuation: &self.albedo,
+            scattered_ray: Ray3 {
+                origin: hit.p.clone(),
+                dir: incident_ray.dir.reflect(&hit.normal),
+            },
+        })
+    }
+}

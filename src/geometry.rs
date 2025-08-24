@@ -1,5 +1,5 @@
 use crate::{
-    material::{Lambertian, Material},
+    material::{Lambertian, Material, Metal},
     ray::{Hit, Hittable, Ray3},
     utils::Interval,
     vec::{Point3, Vec3},
@@ -12,19 +12,54 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn lambertian(radius: f64, center: Point3) -> Self {
-        let mat = Box::new(Lambertian {
-            albedo: Vec3 {
-                x: 0.5,
-                y: 0.5,
-                z: 0.5,
-            },
-        });
+    fn new_lambertian(radius: f64, center: Point3, albedo: Vec3) -> Self {
+        let mat = Box::new(Lambertian { albedo });
         Self {
             radius,
             center,
             mat,
         }
+    }
+
+    pub fn lambertian(radius: f64, center: Point3) -> Self {
+        Self::new_lambertian(
+            radius,
+            center,
+            Vec3 {
+                x: 0.5,
+                y: 0.5,
+                z: 0.5,
+            },
+        )
+    }
+
+    pub fn lambertian_with_albedo(radius: f64, center: Point3, albedo: Vec3) -> Self {
+        Self::new_lambertian(radius, center, albedo)
+    }
+
+    fn new_metal(radius: f64, center: Point3, albedo: Vec3) -> Self {
+        let mat = Box::new(Metal { albedo });
+        Self {
+            radius,
+            center,
+            mat,
+        }
+    }
+
+    pub fn metal(radius: f64, center: Point3) -> Self {
+        Self::new_metal(
+            radius,
+            center,
+            Vec3 {
+                x: 0.5,
+                y: 0.5,
+                z: 0.5,
+            },
+        )
+    }
+
+    pub fn metal_with_albedo(radius: f64, center: Point3, albedo: Vec3) -> Self {
+        Self::new_metal(radius, center, albedo)
     }
 }
 
