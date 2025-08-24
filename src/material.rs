@@ -28,15 +28,17 @@ impl Material for Lambertian {
 
 pub struct Metal {
     pub albedo: Vec3,
+    pub fuzz: f64,
 }
 
 impl Material for Metal {
-    fn scatter(&self, incident_ray: &Ray3, hit: &Hit, _rng: &mut dyn RngCore) -> Option<Scatter> {
+    fn scatter(&self, incident_ray: &Ray3, hit: &Hit, rng: &mut dyn RngCore) -> Option<Scatter> {
         Some(Scatter {
             attenuation: &self.albedo,
             scattered_ray: Ray3 {
                 origin: hit.p.clone(),
-                dir: incident_ray.dir.reflect(&hit.normal),
+                dir: incident_ray.dir.norm().reflect(&hit.normal)
+                    + (Vec3::rand_unit_sphere_vec(rng) * self.fuzz),
             },
         })
     }

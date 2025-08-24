@@ -37,8 +37,8 @@ impl Sphere {
         Self::new_lambertian(radius, center, albedo)
     }
 
-    fn new_metal(radius: f64, center: Point3, albedo: Vec3) -> Self {
-        let mat = Box::new(Metal { albedo });
+    fn new_metal(radius: f64, center: Point3, albedo: Vec3, fuzz: f64) -> Self {
+        let mat = Box::new(Metal { albedo, fuzz });
         Self {
             radius,
             center,
@@ -46,7 +46,7 @@ impl Sphere {
         }
     }
 
-    pub fn metal(radius: f64, center: Point3) -> Self {
+    pub fn metal(radius: f64, center: Point3, fuzz: f64) -> Self {
         Self::new_metal(
             radius,
             center,
@@ -55,11 +55,12 @@ impl Sphere {
                 y: 0.5,
                 z: 0.5,
             },
+            fuzz,
         )
     }
 
-    pub fn metal_with_albedo(radius: f64, center: Point3, albedo: Vec3) -> Self {
-        Self::new_metal(radius, center, albedo)
+    pub fn metal_with_albedo(radius: f64, center: Point3, albedo: Vec3, fuzz: f64) -> Self {
+        Self::new_metal(radius, center, albedo, fuzz)
     }
 }
 

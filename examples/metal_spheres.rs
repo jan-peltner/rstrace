@@ -6,7 +6,7 @@ use rstrace::vec::*;
 
 fn main() {
     // --- Camera ---
-    let camera = Camera::<ThreadRng>::with_default_rng(1600, 16.0 / 9.0, Point3::zero(), 1000, 100);
+    let camera = Camera::<ThreadRng>::with_default_rng(1600, 16.0 / 9.0, Point3::zero(), 100, 10);
 
     // --- World ---
     let world_sphere = Box::from(Sphere::lambertian_with_albedo(
@@ -49,6 +49,7 @@ fn main() {
             y: 0.8,
             z: 0.8,
         },
+        0.0,
     ));
     let right_sphere = Box::from(Sphere::metal_with_albedo(
         0.5,
@@ -62,6 +63,7 @@ fn main() {
             y: 0.6,
             z: 0.2,
         },
+        0.5,
     ));
 
     let world = Hittables {
