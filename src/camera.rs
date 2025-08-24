@@ -105,10 +105,11 @@ impl<R: Rng> Camera<R> {
     pub fn render(&self, world: Hittables) {
         let image = Image::new(self.img_w, self.img_h, |x, y| {
             let mut px = Pixel::zero();
+            let rng = &mut self.rng.borrow_mut();
 
             for _ in 0..self.rays_per_pixel {
-                let ray = self.get_ray(x, y);
-                px = px + self.color_ray(&ray, &world, self.max_bounces);
+                let ray = self.get_ray(x, y, rng);
+                px = px + self.color_ray(&ray, &world, self.max_bounces, rng);
             }
 
             px / self.rays_per_pixel as f64
@@ -117,7 +118,7 @@ impl<R: Rng> Camera<R> {
         println!("{}", image);
     }
 
-    fn color_ray(&self, ray: &Ray3, world: &Hittables, bounces_left: u32) -> Pixel {
+    fn color_ray(&self, ray: &Ray3, world: &Hittables, bounces_left: u32, rng: &mut R) -> Pixel {
         if bounces_left <= 0 {
             return Pixel {
                 x: 0.0,
@@ -130,18 +131,21 @@ impl<R: Rng> Camera<R> {
             min: 0.001,
             max: f64::INFINITY,
         };
-        if let Some(hit) = world.check_hit(&ray, &mut t_range) {
-            let reflection_dir =
-                &hit.normal + &Vec3::rand_unit_sphere_vec(&mut self.rng.borrow_mut());
 
-            return self.color_ray(
-                &Ray3 {
-                    dir: reflection_dir,
-                    origin: hit.p,
-                },
-                world,
-                bounces_left - 1,
-            ) * 0.5;
+        if let Some(hit) = world.check_hit(&ray, &mut t_range) {
+            if let Some(scatter) = hit.mat.scatter(ray, &hit, rng) {
+                return &self.color_ray(
+                    &Ray3 {
+                        dir: scatter.scattered_ray.dir,
+                        origin: hit.p,
+                    },
+                    world,
+                    bounces_left - 1,
+                    rng,
+                ) * scatter.attenuation;
+            } else {
+                return Pixel::zero();
+            }
         } else {
             let interpolant = 0.5 * (ray.dir.y + 1.0);
 
@@ -157,8 +161,8 @@ impl<R: Rng> Camera<R> {
         }
     }
 
-    fn get_ray(&self, i: u32, j: u32) -> Ray3 {
-        let square_offset = Vec3::unit_square_offset(&mut self.rng.borrow_mut());
+    fn get_ray(&self, i: u32, j: u32, rng: &mut R) -> Ray3 {
+        let square_offset = Vec3::rand_unit_square_offset(rng);
 
         let px_sample = &(&self.px00 + &(&self.px_delta_u * (i as f64 + square_offset.x)))
             + &(&self.px_delta_v * (j as f64 + square_offset.y));

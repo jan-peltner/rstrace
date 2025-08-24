@@ -1,4 +1,5 @@
 use crate::{
+    material::Material,
     utils::Interval,
     vec::{Point3, Vec3},
 };
@@ -16,10 +17,11 @@ impl Ray3 {
     }
 }
 
-pub struct Hit {
+pub struct Hit<'a> {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f64,
+    pub mat: &'a dyn Material,
 }
 
 pub trait Hittable {
@@ -42,4 +44,9 @@ impl Hittables {
         }
         closest_hit
     }
+}
+
+pub struct Scatter<'a> {
+    pub attenuation: &'a Vec3,
+    pub scattered_ray: Ray3,
 }

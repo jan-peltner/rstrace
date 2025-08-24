@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::{Rng, RngCore};
 
 /// Three-dimensional vector that's used for points, colors, offsets etc.
 #[derive(Clone)]
@@ -22,7 +22,7 @@ impl Vec3 {
         }
     }
 
-    pub fn unit_square_offset<R: Rng>(rng: &mut R) -> Self {
+    pub fn rand_unit_square_offset(rng: &mut dyn RngCore) -> Self {
         Vec3 {
             x: rng.random_range(-0.5..0.5),
             y: rng.random_range(-0.5..0.5),
@@ -38,7 +38,7 @@ impl Vec3 {
         }
     }
 
-    pub fn rand_range<R: Rng>(rng: &mut R, min: f64, max: f64) -> Self {
+    pub fn rand_range(rng: &mut dyn RngCore, min: f64, max: f64) -> Self {
         Vec3 {
             x: rng.random_range(min..max),
             y: rng.random_range(min..max),
@@ -46,7 +46,7 @@ impl Vec3 {
         }
     }
 
-    pub fn rand_unit_sphere_vec<R: Rng>(rng: &mut R) -> Self {
+    pub fn rand_unit_sphere_vec(rng: &mut dyn RngCore) -> Self {
         loop {
             let v = Self::rand_range(rng, -1.0, 1.0);
             let len_sqr = v.len_sqr();
@@ -56,7 +56,7 @@ impl Vec3 {
         }
     }
 
-    pub fn rand_unit_sphere_vec_on_hemisphere<R: Rng>(rng: &mut R, normal: &Vec3) -> Self {
+    pub fn rand_unit_sphere_vec_on_hemisphere(rng: &mut dyn RngCore, normal: &Vec3) -> Self {
         let unit_sphere_vec = Self::rand_unit_sphere_vec(rng);
         if unit_sphere_vec.dot(normal) > 0.0 {
             unit_sphere_vec
@@ -142,6 +142,30 @@ impl std::ops::Mul<f64> for Vec3 {
     }
 }
 
+impl std::ops::Mul<f64> for &Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        Vec3 {
+            x: self.x * rhs,
+            y: self.y * rhs,
+            z: self.z * rhs,
+        }
+    }
+}
+
+impl std::ops::Mul for &Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Vec3 {
+            x: self.x * rhs.x,
+            y: self.y * rhs.y,
+            z: self.z * rhs.z,
+        }
+    }
+}
+
 impl std::ops::Div<f64> for &Vec3 {
     type Output = Vec3;
 
@@ -155,17 +179,5 @@ impl std::ops::Div<f64> for Vec3 {
 
     fn div(self, rhs: f64) -> Self::Output {
         self * (1.0 / rhs)
-    }
-}
-
-impl std::ops::Mul<f64> for &Vec3 {
-    type Output = Vec3;
-
-    fn mul(self, rhs: f64) -> Self::Output {
-        Vec3 {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-        }
     }
 }

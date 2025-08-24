@@ -1,12 +1,31 @@
 use crate::{
+    material::{Lambertian, Material},
     ray::{Hit, Hittable, Ray3},
     utils::Interval,
-    vec::Point3,
+    vec::{Point3, Vec3},
 };
 
 pub struct Sphere {
     pub radius: f64,
     pub center: Point3,
+    mat: Box<dyn Material>,
+}
+
+impl Sphere {
+    pub fn lambertian(radius: f64, center: Point3) -> Self {
+        let mat = Box::new(Lambertian {
+            albedo: Vec3 {
+                x: 0.5,
+                y: 0.5,
+                z: 0.5,
+            },
+        });
+        Self {
+            radius,
+            center,
+            mat,
+        }
+    }
 }
 
 impl Hittable for Sphere {
@@ -52,6 +71,7 @@ impl Hittable for Sphere {
             } else {
                 outward_normal * -1.0
             },
+            mat: &*self.mat,
         });
     }
 }
