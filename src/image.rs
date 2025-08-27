@@ -31,6 +31,12 @@ impl Image {
             for x in 0..w {
                 row.push(pxfn(x, y));
             }
+
+            let scanline = y + 1;
+            if scanline % 100 == 0 {
+                println!("Scanlines processed: {}/{}", scanline, h);
+            }
+
             pixels.push(row);
         }
         Image {
