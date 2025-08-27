@@ -6,7 +6,12 @@ use crate::{
 };
 use core::f64;
 use rand::{rngs::ThreadRng, Rng};
-use std::cell::RefCell;
+use std::{
+    cell::RefCell,
+    fs::File,
+    io::{BufWriter, Write},
+    path::Path,
+};
 
 // make Camera generic over R so we can potentially use different rngs later
 pub struct Camera<R: Rng> {
@@ -102,7 +107,9 @@ impl<R: Rng> Camera<R> {
         )
     }
 
-    pub fn render(&self, world: Hittables) {
+    pub fn render(&self, world: Hittables, path: impl AsRef<Path>) -> std::io::Result<()> {
+        println!("Rendering image @ {}x{}...", self.img_w, self.img_h);
+
         let image = Image::new(self.img_w, self.img_h, |x, y| {
             let mut px = Pixel::zero();
             let rng = &mut self.rng.borrow_mut();
@@ -115,7 +122,11 @@ impl<R: Rng> Camera<R> {
             px / self.rays_per_pixel as f64
         });
 
-        println!("{}", image);
+        let file = File::create(path)?;
+        let mut writer = BufWriter::new(file);
+        write!(writer, "{}", image)?;
+
+        Ok(())
     }
 
     fn color_ray(&self, ray: &Ray3, world: &Hittables, bounces_left: u32, rng: &mut R) -> Pixel {

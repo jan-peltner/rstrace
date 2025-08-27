@@ -32,5 +32,5 @@ fn main() {
     };
 
     // --- Render ---
-    camera.render(world);
+    let _ = camera.render(world, "lambertian_sphere.ppm");
 }
