@@ -1,5 +1,5 @@
 use crate::{
-    material::{Lambertian, Material, Metal},
+    material::{Dielectric, Lambertian, Material, Metal},
     ray::{Hit, Hittable, Ray3},
     utils::Interval,
     vec::{Point3, Vec3},
@@ -62,6 +62,19 @@ impl Sphere {
     pub fn metal_with_albedo(radius: f64, center: Point3, albedo: Vec3, fuzz: f64) -> Self {
         Self::new_metal(radius, center, albedo, fuzz)
     }
+
+    fn new_dielectric(radius: f64, center: Point3, refractive_index: f64) -> Self {
+        let mat = Box::new(Dielectric { refractive_index });
+        Self {
+            radius,
+            center,
+            mat,
+        }
+    }
+
+    pub fn dialectric(radius: f64, center: Point3, refractive_index: f64) -> Self {
+        Self::new_dielectric(radius, center, refractive_index)
+    }
 }
 
 impl Hittable for Sphere {
@@ -94,6 +107,7 @@ impl Hittable for Sphere {
 
         // Dividing by radius normalizes the vector -> more performant than calling .norm()
         let outward_normal = (&intersection_point - &self.center) / self.radius;
+        let front_face = ray.dir.dot(&outward_normal) < 0.0;
 
         return Some(Hit {
             p: intersection_point.clone(),
@@ -102,11 +116,12 @@ impl Hittable for Sphere {
             // A front face hit occurs when the ray's direction is generally opposite to the
             // surface's inherent outward normal. A back face hit occurs when they are generally
             // in the same direction (meaning the ray is inside the object and trying to exit)
-            normal: if ray.dir.dot(&outward_normal) < 0.0 {
+            normal: if front_face {
                 outward_normal
             } else {
                 outward_normal * -1.0
             },
+            front_face,
             mat: &*self.mat,
         });
     }

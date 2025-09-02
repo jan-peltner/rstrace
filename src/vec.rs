@@ -69,6 +69,17 @@ impl Vec3 {
         self + &((normal * self.dot(normal)) * -2.0)
     }
 
+    pub fn refract(&self, normal: &Vec3, etai_over_etao: f64) -> Self {
+        let cos_theta = (self * -1.0).dot(normal).min(1.0); // safety clamp to avoid float rounding
+                                                            // above 1.0
+
+        // component of R' that is perpendicular to surface
+        let r_perp = (self + &(normal * cos_theta)) * etai_over_etao;
+        // component of R' that is parallel to surface
+        let r_para = normal * -(1.0 - &r_perp.len_sqr()).abs().sqrt();
+        r_perp + r_para
+    }
+
     pub fn len_sqr(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }

@@ -43,3 +43,32 @@ impl Material for Metal {
         })
     }
 }
+
+pub struct Dielectric {
+    pub refractive_index: f64,
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, incident_ray: &Ray3, hit: &Hit, _rng: &mut dyn RngCore) -> Option<Scatter> {
+        let refraction_ratio = if hit.front_face {
+            1.0 / self.refractive_index // we assume that the outside medium is air which has a
+                                        // refractive index of almost zero
+        } else {
+            self.refractive_index
+        };
+        Some(Scatter {
+            attenuation: &Vec3 {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            },
+            scattered_ray: Ray3 {
+                origin: hit.p.clone(),
+                dir: incident_ray
+                    .dir
+                    .norm()
+                    .refract(&hit.normal, refraction_ratio),
+            },
+        })
+    }
+}
