@@ -46,6 +46,17 @@ fn main() {
         },
         1.5,
     ));
+
+    let left_bubble = Box::from(Sphere::dielectric(
+        0.4,
+        Point3 {
+            x: -1.0,
+            y: 0.0,
+            z: -1.0,
+        },
+        1.0 / 1.5,
+    ));
+
     let right_sphere = Box::from(Sphere::metal_with_albedo(
         0.5,
         Point3 {
@@ -62,7 +73,13 @@ fn main() {
     ));
 
     let world = Hittables {
-        objects: vec![center_sphere, world_sphere, left_sphere, right_sphere],
+        objects: vec![
+            center_sphere,
+            world_sphere,
+            left_sphere,
+            left_bubble,
+            right_sphere,
+        ],
     };
 
     // --- Render ---
