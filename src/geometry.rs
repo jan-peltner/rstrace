@@ -72,7 +72,7 @@ impl Sphere {
         }
     }
 
-    pub fn dialectric(radius: f64, center: Point3, refractive_index: f64) -> Self {
+    pub fn dielectric(radius: f64, center: Point3, refractive_index: f64) -> Self {
         Self::new_dielectric(radius, center, refractive_index)
     }
 }

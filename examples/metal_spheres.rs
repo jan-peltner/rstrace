@@ -6,7 +6,7 @@ use rstrace::vec::*;
 
 fn main() {
     // --- Camera ---
-    let camera = Camera::<ThreadRng>::with_default_rng(1600, 16.0 / 9.0, Point3::zero(), 100, 10);
+    let camera = Camera::<ThreadRng>::with_default_rng(1600, 16.0 / 9.0, Point3::zero(), 1000, 100);
 
     // --- World ---
     let world_sphere = Box::from(Sphere::lambertian_with_albedo(

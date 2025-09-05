@@ -37,7 +37,7 @@ fn main() {
         },
     ));
 
-    let left_sphere = Box::from(Sphere::dialectric(
+    let left_sphere = Box::from(Sphere::dielectric(
         0.5,
         Point3 {
             x: -1.0,
@@ -66,5 +66,5 @@ fn main() {
     };
 
     // --- Render ---
-    let _ = camera.render(world, "dialectric_sphere.ppm");
+    let _ = camera.render(world, "dielectric_sphere.ppm");
 }
