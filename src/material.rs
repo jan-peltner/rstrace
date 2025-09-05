@@ -56,6 +56,20 @@ impl Material for Dielectric {
         } else {
             self.refractive_index
         };
+        let unit_dir = incident_ray.dir.norm();
+
+        let cos_theta = (&unit_dir * -1.0).dot(&hit.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+
+        // sin(theta') can't be bigger than 1, so if that is the case we need to reflect the ray
+        // instead
+
+        let dir = if refraction_ratio * sin_theta > 1.0 {
+            unit_dir.reflect(&hit.normal)
+        } else {
+            unit_dir.refract(&hit.normal, refraction_ratio)
+        };
+
         Some(Scatter {
             attenuation: &Vec3 {
                 x: 1.0,
@@ -64,10 +78,7 @@ impl Material for Dielectric {
             },
             scattered_ray: Ray3 {
                 origin: hit.p.clone(),
-                dir: incident_ray
-                    .dir
-                    .norm()
-                    .refract(&hit.normal, refraction_ratio),
+                dir,
             },
         })
     }
