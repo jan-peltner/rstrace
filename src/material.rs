@@ -2,7 +2,7 @@ use rand::{Rng, RngCore};
 
 use crate::{
     ray::{Hit, Ray3, Scatter},
-    vec::Vec3,
+    vec::{Color, Vec3},
 };
 
 pub trait Material {
@@ -10,7 +10,7 @@ pub trait Material {
 }
 
 pub struct Lambertian {
-    pub albedo: Vec3,
+    pub albedo: Color,
 }
 
 impl Material for Lambertian {
@@ -27,7 +27,7 @@ impl Material for Lambertian {
 }
 
 pub struct Metal {
-    pub albedo: Vec3,
+    pub albedo: Color,
     pub fuzz: f64,
 }
 
@@ -84,7 +84,7 @@ impl Material for Dielectric {
         };
 
         Some(Scatter {
-            attenuation: &Vec3 {
+            attenuation: &Color {
                 x: 1.0,
                 y: 1.0,
                 z: 1.0,

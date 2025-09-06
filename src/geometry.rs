@@ -2,17 +2,17 @@ use crate::{
     material::{Dielectric, Lambertian, Material, Metal},
     ray::{Hit, Hittable, Ray3},
     utils::Interval,
-    vec::{Point3, Vec3},
+    vec::{Color, Point, Vec3},
 };
 
 pub struct Sphere {
     pub radius: f64,
-    pub center: Point3,
+    pub center: Point,
     mat: Box<dyn Material>,
 }
 
 impl Sphere {
-    fn new_lambertian(radius: f64, center: Point3, albedo: Vec3) -> Self {
+    fn new_lambertian(radius: f64, center: Point, albedo: Color) -> Self {
         let mat = Box::new(Lambertian { albedo });
         Self {
             radius,
@@ -21,11 +21,11 @@ impl Sphere {
         }
     }
 
-    pub fn lambertian(radius: f64, center: Point3) -> Self {
+    pub fn lambertian(radius: f64, center: Point) -> Self {
         Self::new_lambertian(
             radius,
             center,
-            Vec3 {
+            Color {
                 x: 0.5,
                 y: 0.5,
                 z: 0.5,
@@ -33,11 +33,11 @@ impl Sphere {
         )
     }
 
-    pub fn lambertian_with_albedo(radius: f64, center: Point3, albedo: Vec3) -> Self {
+    pub fn lambertian_with_albedo(radius: f64, center: Point, albedo: Color) -> Self {
         Self::new_lambertian(radius, center, albedo)
     }
 
-    fn new_metal(radius: f64, center: Point3, albedo: Vec3, fuzz: f64) -> Self {
+    fn new_metal(radius: f64, center: Point, albedo: Vec3, fuzz: f64) -> Self {
         let mat = Box::new(Metal { albedo, fuzz });
         Self {
             radius,
@@ -46,11 +46,11 @@ impl Sphere {
         }
     }
 
-    pub fn metal(radius: f64, center: Point3, fuzz: f64) -> Self {
+    pub fn metal(radius: f64, center: Point, fuzz: f64) -> Self {
         Self::new_metal(
             radius,
             center,
-            Vec3 {
+            Color {
                 x: 0.5,
                 y: 0.5,
                 z: 0.5,
@@ -59,11 +59,11 @@ impl Sphere {
         )
     }
 
-    pub fn metal_with_albedo(radius: f64, center: Point3, albedo: Vec3, fuzz: f64) -> Self {
+    pub fn metal_with_albedo(radius: f64, center: Point, albedo: Color, fuzz: f64) -> Self {
         Self::new_metal(radius, center, albedo, fuzz)
     }
 
-    fn new_dielectric(radius: f64, center: Point3, refractive_index: f64) -> Self {
+    fn new_dielectric(radius: f64, center: Point, refractive_index: f64) -> Self {
         let mat = Box::new(Dielectric { refractive_index });
         Self {
             radius,
@@ -72,7 +72,7 @@ impl Sphere {
         }
     }
 
-    pub fn dielectric(radius: f64, center: Point3, refractive_index: f64) -> Self {
+    pub fn dielectric(radius: f64, center: Point, refractive_index: f64) -> Self {
         Self::new_dielectric(radius, center, refractive_index)
     }
 }

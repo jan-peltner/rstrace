@@ -11,7 +11,8 @@ pub struct Vec3 {
 /// Pixel that's used to render an image pub type Pixel = Vec3;
 pub type Pixel = Vec3;
 /// Point in 3d space
-pub type Point3 = Vec3;
+pub type Point = Vec3;
+pub type Color = Vec3;
 
 impl Vec3 {
     pub fn zero() -> Self {
@@ -96,6 +97,8 @@ impl Vec3 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
 }
+
+impl Color {}
 
 impl std::ops::Add for Vec3 {
     type Output = Self;

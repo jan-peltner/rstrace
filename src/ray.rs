@@ -1,24 +1,24 @@
 use crate::{
     material::Material,
     utils::Interval,
-    vec::{Point3, Vec3},
+    vec::{Color, Point, Vec3},
 };
 
-/// Ray in 3d space. A ray has an origin point `Point3` and a direction `Vec3`.
+/// Ray in 3d space. A ray has an origin point `Point` and a direction `Vec3`.
 #[derive(Clone)]
 pub struct Ray3 {
-    pub origin: Point3,
+    pub origin: Point,
     pub dir: Vec3,
 }
 
 impl Ray3 {
-    pub fn at(&self, t: f64) -> Point3 {
+    pub fn at(&self, t: f64) -> Point {
         &self.origin + &(&self.dir * t)
     }
 }
 
 pub struct Hit<'a> {
-    pub p: Point3,
+    pub p: Point,
     pub normal: Vec3,
     pub front_face: bool,
     pub t: f64,
@@ -48,6 +48,6 @@ impl Hittables {
 }
 
 pub struct Scatter<'a> {
-    pub attenuation: &'a Vec3,
+    pub attenuation: &'a Color,
     pub scattered_ray: Ray3,
 }

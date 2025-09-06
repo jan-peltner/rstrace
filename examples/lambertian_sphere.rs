@@ -6,12 +6,13 @@ use rstrace::vec::*;
 
 fn main() {
     // --- Camera ---
-    let camera = Camera::<ThreadRng>::with_default_rng(1600, 16.0 / 9.0, Point3::zero(), 10, 10);
+    let camera =
+        Camera::<ThreadRng>::with_default_rng(1600, 16.0 / 9.0, Point::zero(), 10, 10, 90.0);
 
     // --- World ---
     let central_sphere = Box::from(Sphere::lambertian(
         0.5,
-        Point3 {
+        Point {
             x: 0.0,
             y: 0.0,
             z: -1.0,
@@ -20,7 +21,7 @@ fn main() {
 
     let world_sphere = Box::from(Sphere::lambertian(
         100.0,
-        Point3 {
+        Point {
             x: 0.0,
             y: -100.5,
             z: -1.0,

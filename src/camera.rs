@@ -2,7 +2,7 @@ use crate::{
     image::Image,
     ray::{Hittables, Ray3},
     utils::{lerp, Interval},
-    vec::{Pixel, Point3, Vec3},
+    vec::{Pixel, Point, Vec3},
 };
 use core::f64;
 use rand::{rngs::ThreadRng, Rng};
@@ -17,12 +17,13 @@ use std::{
 pub struct Camera<R: Rng> {
     img_w: u32,
     img_h: u32,
-    center: Point3,
-    px00: Point3,
+    center: Point,
+    px00: Point,
     px_delta_u: Vec3,
     px_delta_v: Vec3,
     rays_per_pixel: u32,
     max_bounces: u32,
+    vfov: f64,
     rng: RefCell<R>,
 }
 
@@ -30,15 +31,20 @@ impl<R: Rng> Camera<R> {
     pub fn new(
         img_w: u32,
         ar: f64,
-        camera_center: Point3,
+        camera_center: Point,
         rays_per_pixel: u32,
         max_bounces: u32,
+        vfov: f64,
         rng: R,
     ) -> Self {
         let img_h = Image::compute_height(img_w, ar);
 
         let focal_length = 1.0; // Distance from camera to the viewport in world units
-        let vp_h = 2.0; // Viewport height in world units
+
+        // Half angle of vertical fov -> measured from z-axis to top
+        let theta = vfov / 2.0;
+        let h = theta.tan();
+        let vp_h = h * 2.0 * focal_length; // Viewport height in world units
 
         // We recompute the aspect ratio here because the actual ratio can be different since img_w and
         // img_h are casted to u32s
@@ -86,6 +92,7 @@ impl<R: Rng> Camera<R> {
             px_delta_v,
             rays_per_pixel,
             max_bounces,
+            vfov,
             rng: RefCell::new(rng),
         }
     }
@@ -93,9 +100,10 @@ impl<R: Rng> Camera<R> {
     pub fn with_default_rng(
         img_w: u32,
         ar: f64,
-        camera_center: Point3,
+        camera_center: Point,
         rays_per_pixel: u32,
         max_bounces: u32,
+        vfov: f64,
     ) -> Camera<ThreadRng> {
         Camera::new(
             img_w,
@@ -103,6 +111,7 @@ impl<R: Rng> Camera<R> {
             camera_center,
             rays_per_pixel,
             max_bounces,
+            vfov,
             rand::rng(),
         )
     }
