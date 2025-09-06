@@ -42,7 +42,7 @@ impl<R: Rng> Camera<R> {
         let focal_length = 1.0; // Distance from camera to the viewport in world units
 
         // Half angle of vertical fov -> measured from z-axis to top
-        let theta = vfov / 2.0;
+        let theta = vfov.to_radians() / 2.0;
         let h = theta.tan();
         let vp_h = h * 2.0 * focal_length; // Viewport height in world units
 
