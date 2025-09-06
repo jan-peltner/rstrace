@@ -23,7 +23,6 @@ pub struct Camera<R: Rng> {
     px_delta_v: Vec3,
     rays_per_pixel: u32,
     max_bounces: u32,
-    vfov: f64,
     rng: RefCell<R>,
 }
 
@@ -92,7 +91,6 @@ impl<R: Rng> Camera<R> {
             px_delta_v,
             rays_per_pixel,
             max_bounces,
-            vfov,
             rng: RefCell::new(rng),
         }
     }
