@@ -98,7 +98,39 @@ impl Vec3 {
     }
 }
 
-impl Color {}
+impl Color {
+    pub fn red() -> Self {
+        return Color {
+            x: 1.0,
+            y: 0.0,
+            z: 0.0,
+        };
+    }
+
+    pub fn green() -> Self {
+        return Color {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        };
+    }
+
+    pub fn blue() -> Self {
+        return Color {
+            x: 0.0,
+            y: 0.0,
+            z: 1.0,
+        };
+    }
+
+    pub fn white() -> Self {
+        return Color {
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+        };
+    }
+}
 
 impl std::ops::Add for Vec3 {
     type Output = Self;

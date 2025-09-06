@@ -18,11 +18,7 @@ fn main() {
             y: 0.0,
             z: -1.0,
         },
-        Color {
-            x: 0.0,
-            y: 0.0,
-            z: 1.0,
-        },
+        Color::blue(),
     ));
 
     let right_sphere = Box::from(Sphere::lambertian_with_albedo(
@@ -32,11 +28,7 @@ fn main() {
             y: 0.0,
             z: -1.0,
         },
-        Color {
-            x: 1.0,
-            y: 0.0,
-            z: 0.0,
-        },
+        Color::red(),
     ));
 
     let world = Hittables {
