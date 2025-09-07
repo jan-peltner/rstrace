@@ -36,5 +36,5 @@ fn main() {
     };
 
     // --- Render ---
-    let _ = camera.render(world, "fov90sin.ppm");
+    let _ = camera.render(world, "fov90.ppm");
 }
