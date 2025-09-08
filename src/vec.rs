@@ -96,6 +96,14 @@ impl Vec3 {
     pub fn dot(&self, rhs: &Self) -> f64 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
+
+    pub fn cross(&self, v: &Vec3) -> Vec3 {
+        Vec3 {
+            x: self.y * v.z - self.z * v.y,
+            y: self.z * v.x - self.x * v.z,
+            z: self.x * v.y - self.y * v.x,
+        }
+    }
 }
 
 impl Color {
