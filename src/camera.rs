@@ -14,9 +14,9 @@ use std::{
 };
 
 pub struct CameraPose {
-    lookfrom: Vec3,
-    lookat: Vec3,
-    vup: Vec3,
+    pub lookfrom: Vec3,
+    pub lookat: Vec3,
+    pub vup: Vec3,
 }
 
 // make Camera generic over R so we can potentially use different rngs later
