@@ -66,6 +66,20 @@ impl Vec3 {
         }
     }
 
+    pub fn rand_on_unit_disc(rng: &mut dyn RngCore) -> Self {
+        loop {
+            let v = Vec3 {
+                x: rng.random_range(-1.0..1.0),
+                y: rng.random_range(-1.0..1.0),
+                z: 0.0,
+            };
+            // use len_sqr() for performance
+            if v.len_sqr() < 1.0 {
+                return v;
+            }
+        }
+    }
+
     pub fn reflect(&self, normal: &Vec3) -> Self {
         self + &((normal * self.dot(normal)) * -2.0)
     }
