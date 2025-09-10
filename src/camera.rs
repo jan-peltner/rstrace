@@ -44,20 +44,16 @@ impl<R: Rng> Camera<R> {
     ) -> Self {
         let img_h = Image::compute_height(img_w, ar);
 
-        let focal_length = (&pose.lookfrom - &pose.lookat).len(); // Distance from camera to the viewport in world units
+        // Distance from camera to viewport in world units
+        let focal_length = (&pose.lookfrom - &pose.lookat).len();
 
         // Half angle of vertical fov -> measured from z-axis to top
         let theta = vfov.to_radians() / 2.0;
         let h = theta.tan();
         let vp_h = h * 2.0 * focal_length; // Viewport height in world units
-
-        // We recompute the aspect ratio here because the actual ratio can be different since img_w and
-        // img_h are casted to u32s
         let vp_w = vp_h * (img_w as f64 / img_h as f64);
 
-        // Vectors along the edges (x and y axes) of the viewport
-
-        // Orthonormal basis
+        // Orthonormal basis (u,v,w)
         // Direction that the camera looks at but in reverse
         let w = (&pose.lookfrom - &pose.lookat).norm();
         // Perpendicular vector to both vup and w, or in other words: normal vector to the plane
@@ -66,6 +62,7 @@ impl<R: Rng> Camera<R> {
         // use the two perpendicular vectors w and u to compute the final "up" vector v
         let v = &u.cross(&w);
 
+        // Vectors along the edges of the viewport
         let vp_u = u * vp_w;
         let vp_v = v * vp_h;
 
