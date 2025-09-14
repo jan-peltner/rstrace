@@ -19,6 +19,48 @@ pub struct CameraPose {
     pub vup: Vec3,
 }
 
+impl Default for CameraPose {
+    fn default() -> Self {
+        Self {
+            lookfrom: Vec3::zero(),
+            lookat: Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: -1.0,
+            },
+            vup: Vec3 {
+                x: 0.0,
+                y: 1.0,
+                z: 0.0,
+            },
+        }
+    }
+}
+
+pub struct CameraIntrinsics {
+    pub img_w: u32,
+    pub ar: f64,
+    pub rays_per_pixel: u32,
+    pub max_bounces: u32,
+    pub vfov: f64,
+    pub defoucs_angle: f64,
+    pub focus_distance: f64,
+}
+
+impl Default for CameraIntrinsics {
+    fn default() -> Self {
+        Self {
+            img_w: 1600,
+            ar: 16.0 / 9.0,
+            rays_per_pixel: 100,
+            max_bounces: 10,
+            vfov: 90.0,
+            defoucs_angle: 0.0,
+            focus_distance: 1.0,
+        }
+    }
+}
+
 // make Camera generic over R so we can potentially use different rngs later
 pub struct Camera<R: Rng> {
     img_w: u32,
@@ -26,6 +68,9 @@ pub struct Camera<R: Rng> {
     px00: Point,
     px_delta_u: Vec3,
     px_delta_v: Vec3,
+    defocus_disk_radius: f64,
+    defocus_disk_u: Vec3,
+    defocus_disk_v: Vec3,
     rays_per_pixel: u32,
     max_bounces: u32,
     pose: CameraPose,
@@ -33,25 +78,14 @@ pub struct Camera<R: Rng> {
 }
 
 impl<R: Rng> Camera<R> {
-    pub fn new(
-        img_w: u32,
-        ar: f64,
-        rays_per_pixel: u32,
-        max_bounces: u32,
-        vfov: f64,
-        pose: CameraPose,
-        rng: R,
-    ) -> Self {
-        let img_h = Image::compute_height(img_w, ar);
-
-        // Distance from camera to viewport in world units
-        let focal_length = (&pose.lookfrom - &pose.lookat).len();
+    pub fn new(intrinsics: CameraIntrinsics, pose: CameraPose, rng: R) -> Self {
+        let img_h = Image::compute_height(intrinsics.img_w, intrinsics.ar);
 
         // Half angle of vertical fov -> measured from z-axis to top
-        let theta = vfov.to_radians() / 2.0;
+        let theta = intrinsics.vfov.to_radians() / 2.0;
         let h = theta.tan();
-        let vp_h = h * 2.0 * focal_length; // Viewport height in world units
-        let vp_w = vp_h * (img_w as f64 / img_h as f64);
+        let vp_h = h * 2.0 * intrinsics.focus_distance; // Viewport height in world units
+        let vp_w = vp_h * (intrinsics.img_w as f64 / img_h as f64);
 
         // Orthonormal basis (u,v,w)
         // Direction that the camera looks at but in reverse
@@ -69,67 +103,44 @@ impl<R: Rng> Camera<R> {
         // Pixel spacing -> the amount of world units that one image pixel takes up on the viewport
         // Multiplying the pixel coordinates (i, j) by these deltas moves us to the
         // corresponding location on the viewport plane
-        let px_delta_u = &vp_u / img_w as f64;
+        let px_delta_u = &vp_u / intrinsics.img_w as f64;
         let px_delta_v = &vp_v / img_h as f64;
 
-        let vp_upper_left = &pose.lookfrom - &(&w * focal_length) - &vp_u / 2.0 - &vp_v / 2.0;
+        let vp_upper_left =
+            &pose.lookfrom - &(&w * intrinsics.focus_distance) - &vp_u / 2.0 - &vp_v / 2.0;
 
         // Inset the pixel grid by half a unit from the viewport edges
         let px00 = &vp_upper_left + &((&px_delta_u + &px_delta_v) * 0.5);
 
+        // defocus disk radius -> opposite side
+        // focus distance -> adjacent side
+        let defocus_disk_radius =
+            (intrinsics.defoucs_angle.to_radians() / 2.0).tan() * intrinsics.focus_distance;
+        let defocus_disk_u = u * defocus_disk_radius;
+        let defocus_disk_v = v * defocus_disk_radius;
+
         Camera {
-            img_w,
+            img_w: intrinsics.img_w,
             img_h,
             px00,
             px_delta_u,
             px_delta_v,
-            rays_per_pixel,
-            max_bounces,
+            defocus_disk_radius,
+            defocus_disk_u,
+            defocus_disk_v,
+            rays_per_pixel: intrinsics.rays_per_pixel,
+            max_bounces: intrinsics.max_bounces,
             pose,
             rng: RefCell::new(rng),
         }
     }
 
-    pub fn with_default_rng(
-        img_w: u32,
-        ar: f64,
-        rays_per_pixel: u32,
-        max_bounces: u32,
-        vfov: f64,
-        pose: CameraPose,
-    ) -> Camera<ThreadRng> {
-        Camera::new(
-            img_w,
-            ar,
-            rays_per_pixel,
-            max_bounces,
-            vfov,
-            pose,
-            rand::rng(),
-        )
+    pub fn with_default_rng(intrinsics: CameraIntrinsics, pose: CameraPose) -> Camera<ThreadRng> {
+        Camera::new(intrinsics, pose, rand::rng())
     }
 
-    pub fn with_default_rng_and_pose(
-        img_w: u32,
-        ar: f64,
-        rays_per_pixel: u32,
-        max_bounces: u32,
-        vfov: f64,
-    ) -> Camera<ThreadRng> {
-        let pose = CameraPose {
-            lookfrom: Vec3::zero(),
-            lookat: Vec3 {
-                x: 0.0,
-                y: 0.0,
-                z: -1.0,
-            },
-            vup: Vec3 {
-                x: 0.0,
-                y: 1.0,
-                z: 0.0,
-            },
-        };
-        Camera::<ThreadRng>::with_default_rng(img_w, ar, rays_per_pixel, max_bounces, vfov, pose)
+    pub fn with_default_rng_and_pose(intrinsics: CameraIntrinsics) -> Camera<ThreadRng> {
+        Camera::<ThreadRng>::with_default_rng(intrinsics, CameraPose::default())
     }
 
     pub fn render(&self, world: Hittables, path: impl AsRef<Path>) -> std::io::Result<()> {
@@ -206,8 +217,23 @@ impl<R: Rng> Camera<R> {
         let dir = (&px_sample - &self.pose.lookfrom).norm();
 
         Ray3 {
-            origin: self.pose.lookfrom.clone(),
+            origin: if self.defocus_disk_radius <= 0.0 {
+                self.pose.lookfrom.clone()
+            } else {
+                self.defocus_disk_sample(rng)
+            },
             dir,
         }
+    }
+
+    fn defocus_disk_sample(&self, rng: &mut R) -> Point {
+        let p = Vec3::rand_in_unit_disc(rng);
+        &self.pose.lookfrom + &(&(&self.defocus_disk_u * p.x) + &(&self.defocus_disk_v * p.y))
+    }
+}
+
+impl Default for Camera<ThreadRng> {
+    fn default() -> Self {
+        Self::with_default_rng_and_pose(CameraIntrinsics::default())
     }
 }

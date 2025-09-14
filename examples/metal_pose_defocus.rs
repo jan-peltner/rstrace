@@ -1,11 +1,35 @@
-use rstrace::camera::Camera;
+use rand::rngs::ThreadRng;
+use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::Sphere;
 use rstrace::ray::Hittables;
 use rstrace::vec::*;
 
 fn main() {
     // --- Camera ---
-    let camera = Camera::default();
+    let pose = CameraPose {
+        lookfrom: Vec3 {
+            x: -2.0,
+            y: 2.0,
+            z: 1.0,
+        },
+        lookat: Vec3 {
+            x: 0.0,
+            y: 0.0,
+            z: -1.0,
+        },
+        vup: Vec3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        },
+    };
+
+    let mut intrinsics = CameraIntrinsics::default();
+    intrinsics.defoucs_angle = 5.0;
+    intrinsics.focus_distance = 3.4;
+    intrinsics.vfov = 20.0;
+
+    let camera = Camera::<ThreadRng>::with_default_rng(intrinsics, pose);
 
     // --- World ---
     let world_sphere = Box::from(Sphere::lambertian_with_albedo(
@@ -70,5 +94,5 @@ fn main() {
     };
 
     // --- Render ---
-    let _ = camera.render(world, "metal_spheres.ppm");
+    let _ = camera.render(world, "metal_spheres_defocus.ppm");
 }

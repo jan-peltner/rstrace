@@ -66,7 +66,7 @@ impl Vec3 {
         }
     }
 
-    pub fn rand_on_unit_disc(rng: &mut dyn RngCore) -> Self {
+    pub fn rand_in_unit_disc(rng: &mut dyn RngCore) -> Self {
         loop {
             let v = Vec3 {
                 x: rng.random_range(-1.0..1.0),

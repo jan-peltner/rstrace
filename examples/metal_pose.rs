@@ -1,5 +1,5 @@
 use rand::rngs::ThreadRng;
-use rstrace::camera::{Camera, CameraPose};
+use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::Sphere;
 use rstrace::ray::Hittables;
 use rstrace::vec::*;
@@ -23,7 +23,7 @@ fn main() {
             z: 0.0,
         },
     };
-    let camera = Camera::<ThreadRng>::with_default_rng(1600, 16.0 / 9.0, 100, 10, 90.0, pose);
+    let camera = Camera::<ThreadRng>::with_default_rng(CameraIntrinsics::default(), pose);
 
     // --- World ---
     let world_sphere = Box::from(Sphere::lambertian_with_albedo(

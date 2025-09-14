@@ -1,4 +1,3 @@
-use rand::rngs::ThreadRng;
 use rstrace::camera::Camera;
 use rstrace::geometry::Sphere;
 use rstrace::ray::Hittables;
@@ -6,7 +5,7 @@ use rstrace::vec::*;
 
 fn main() {
     // --- Camera ---
-    let camera = Camera::<ThreadRng>::with_default_rng_and_pose(1600, 16.0 / 9.0, 100, 10, 90.0);
+    let camera = Camera::default();
 
     // --- World ---
     let world_sphere = Box::from(Sphere::lambertian_with_albedo(
