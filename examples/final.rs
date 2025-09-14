@@ -13,7 +13,7 @@ fn main() {
     let mut intrinsics = CameraIntrinsics::default();
     intrinsics.vfov = 20.0;
     intrinsics.img_w = 800;
-    intrinsics.rays_per_pixel = 100;
+    intrinsics.rays_per_pixel = 1000;
     intrinsics.max_bounces = 50;
 
     let pose = CameraPose {
@@ -97,7 +97,7 @@ fn main() {
             y: 1.0,
             z: 0.0,
         },
-        1.0,
+        1.9,
     )));
     world.objects.push(Box::new(Sphere::lambertian_with_albedo(
         1.0,
