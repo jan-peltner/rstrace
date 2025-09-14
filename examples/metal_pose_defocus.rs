@@ -25,7 +25,7 @@ fn main() {
     };
 
     let mut intrinsics = CameraIntrinsics::default();
-    intrinsics.defoucs_angle = 5.0;
+    intrinsics.defoucs_angle = 10.0;
     intrinsics.focus_distance = 3.4;
     intrinsics.vfov = 20.0;
 

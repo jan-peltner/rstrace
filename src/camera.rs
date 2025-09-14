@@ -214,16 +214,15 @@ impl<R: Rng> Camera<R> {
         let px_sample = &(&self.px00 + &(&self.px_delta_u * (i as f64 + square_offset.x)))
             + &(&self.px_delta_v * (j as f64 + square_offset.y));
 
-        let dir = (&px_sample - &self.pose.lookfrom).norm();
+        let origin = if self.defocus_disk_radius <= 0.0 {
+            self.pose.lookfrom.clone()
+        } else {
+            self.defocus_disk_sample(rng)
+        };
 
-        Ray3 {
-            origin: if self.defocus_disk_radius <= 0.0 {
-                self.pose.lookfrom.clone()
-            } else {
-                self.defocus_disk_sample(rng)
-            },
-            dir,
-        }
+        let dir = (&px_sample - &origin).norm();
+
+        Ray3 { origin, dir }
     }
 
     fn defocus_disk_sample(&self, rng: &mut R) -> Point {
