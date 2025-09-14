@@ -70,5 +70,5 @@ fn main() {
     };
 
     // --- Render ---
-    let _ = camera.render(world, "metal_spheres.ppm");
+    let _ = camera.render(world, "metal.ppm");
 }

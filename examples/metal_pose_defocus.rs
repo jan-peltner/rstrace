@@ -94,5 +94,5 @@ fn main() {
     };
 
     // --- Render ---
-    let _ = camera.render(world, "metal_spheres_defocus.ppm");
+    let _ = camera.render(world, "metal_pose_defocus.ppm");
 }
