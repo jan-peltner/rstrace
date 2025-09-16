@@ -182,10 +182,7 @@ impl<R: Rng> Camera<R> {
         if let Some(hit) = world.check_hit(&ray, &mut t_range) {
             if let Some(scatter) = hit.mat.scatter(ray, &hit, rng) {
                 return &self.color_ray(
-                    &Ray3 {
-                        dir: scatter.scattered_ray.dir,
-                        origin: hit.p,
-                    },
+                    &Ray3::with_time(hit.p, scatter.scattered_ray.dir, scatter.scattered_ray.time),
                     world,
                     bounces_left - 1,
                     rng,
@@ -221,8 +218,17 @@ impl<R: Rng> Camera<R> {
         };
 
         let dir = (&px_sample - &origin).norm();
+        let time = rng.random::<f64>();
 
-        Ray3 { origin, dir }
+        Ray3::with_time(
+            if self.defocus_disk_radius <= 0.0 {
+                self.pose.lookfrom.clone()
+            } else {
+                self.defocus_disk_sample(rng)
+            },
+            dir,
+            time,
+        )
     }
 
     fn defocus_disk_sample(&self, rng: &mut R) -> Point {

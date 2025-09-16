@@ -1,6 +1,3 @@
-use std::default;
-use std::process::exit;
-
 use rand::rngs::ThreadRng;
 use rand::{random, Rng};
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};

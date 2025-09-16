@@ -7,7 +7,7 @@ use crate::{
 
 pub struct Sphere {
     pub radius: f64,
-    pub center: Point,
+    pub center: Ray3,
     mat: Box<dyn Material>,
 }
 
@@ -16,7 +16,7 @@ impl Sphere {
         let mat = Box::new(Lambertian { albedo });
         Self {
             radius,
-            center,
+            center: Ray3::without_time(center, Vec3::zero()),
             mat,
         }
     }
@@ -41,7 +41,7 @@ impl Sphere {
         let mat = Box::new(Metal { albedo, fuzz });
         Self {
             radius,
-            center,
+            center: Ray3::without_time(center, Vec3::zero()),
             mat,
         }
     }
@@ -67,7 +67,7 @@ impl Sphere {
         let mat = Box::new(Dielectric { refractive_index });
         Self {
             radius,
-            center,
+            center: Ray3::without_time(center, Vec3::zero()),
             mat,
         }
     }
@@ -75,11 +75,18 @@ impl Sphere {
     pub fn dielectric(radius: f64, center: Point, refractive_index: f64) -> Self {
         Self::new_dielectric(radius, center, refractive_index)
     }
+
+    pub fn add_movement(mut self, center: Point) -> Self {
+        let new_center = &center - &self.center.origin;
+        self.center = Ray3::without_time(self.center.origin, new_center);
+        self
+    }
 }
 
 impl Hittable for Sphere {
     fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
-        let cq = &ray.origin - &self.center;
+        let current_center = self.center.at(ray.time);
+        let cq = &ray.origin - &current_center;
         let a = ray.dir.dot(&ray.dir);
         let b = (&ray.dir * 2.0).dot(&cq);
         let c = &cq.dot(&cq) - self.radius * self.radius;
@@ -106,7 +113,7 @@ impl Hittable for Sphere {
         let intersection_point = ray.at(eval);
 
         // Dividing by radius normalizes the vector -> more performant than calling .norm()
-        let outward_normal = (&intersection_point - &self.center) / self.radius;
+        let outward_normal = (&intersection_point - &current_center) / self.radius;
         let front_face = ray.dir.dot(&outward_normal) < 0.0;
 
         return Some(Hit {

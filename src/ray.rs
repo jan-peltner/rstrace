@@ -9,9 +9,22 @@ use crate::{
 pub struct Ray3 {
     pub origin: Point,
     pub dir: Vec3,
+    pub time: f64,
 }
 
 impl Ray3 {
+    pub fn with_time(origin: Point, dir: Vec3, time: f64) -> Self {
+        Self { origin, dir, time }
+    }
+
+    pub fn without_time(origin: Point, dir: Vec3) -> Self {
+        Self {
+            origin,
+            dir,
+            time: 0.0,
+        }
+    }
+
     pub fn at(&self, t: f64) -> Point {
         &self.origin + &(&self.dir * t)
     }
