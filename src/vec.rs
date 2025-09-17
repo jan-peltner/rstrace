@@ -118,6 +118,10 @@ impl Vec3 {
             z: self.x * v.y - self.y * v.x,
         }
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = f64> {
+        [self.x, self.y, self.z].into_iter()
+    }
 }
 
 impl Color {
