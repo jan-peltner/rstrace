@@ -30,4 +30,12 @@ impl Interval {
     pub fn clamp(&self, x: f64) -> f64 {
         x.min(self.max).max(self.min)
     }
+
+    pub fn expand(mut self, delta: f64) -> Self {
+        let padding = delta / 2.0;
+
+        self.min = self.min - padding;
+        self.max = self.max + padding;
+        self
+    }
 }
