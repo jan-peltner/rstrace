@@ -1,9 +1,9 @@
 use crate::{ray::Ray3, utils::Interval, vec::Point};
 
 pub struct AABB {
-    x: Interval,
-    y: Interval,
-    z: Interval,
+    pub x: Interval,
+    pub y: Interval,
+    pub z: Interval,
 }
 
 impl AABB {
@@ -42,7 +42,7 @@ impl AABB {
 
     // We don't implement the `Hittable` trait because we can't (and don't need to) compute the
     // associated hit data. We only care about whether the ray has intersected the aabb or not.
-    pub fn hit(&self, ray: &Ray3, mut t_range: Interval) -> bool {
+    pub fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> bool {
         for (idx, (dir_comp, orig_comp)) in ray.dir.iter().zip(ray.origin.iter()).enumerate() {
             let interval = self.axis_interval(idx);
 

@@ -1,4 +1,5 @@
 use crate::{
+    aabb::AABB,
     material::{Dielectric, Lambertian, Material, Metal},
     ray::{Hit, Hittable, Ray3},
     utils::Interval,
@@ -9,15 +10,22 @@ pub struct Sphere {
     pub radius: f64,
     pub center: Ray3,
     mat: Box<dyn Material>,
+    bbox: AABB,
 }
 
 impl Sphere {
+    fn aabb(center: &Point, radius: f64) -> AABB {
+        let radius_vec = Vec3::splat(radius);
+        AABB::from_points(&(center - &radius_vec), &(center + &radius_vec))
+    }
+
     fn new_lambertian(radius: f64, center: Point, albedo: Color) -> Self {
         let mat = Box::new(Lambertian { albedo });
         Self {
             radius,
-            center: Ray3::without_time(center, Vec3::zero()),
+            center: Ray3::without_time(center.clone(), Vec3::zero()),
             mat,
+            bbox: Self::aabb(&center, radius),
         }
     }
 
@@ -41,8 +49,9 @@ impl Sphere {
         let mat = Box::new(Metal { albedo, fuzz });
         Self {
             radius,
-            center: Ray3::without_time(center, Vec3::zero()),
+            center: Ray3::without_time(center.clone(), Vec3::zero()),
             mat,
+            bbox: Self::aabb(&center, radius),
         }
     }
 
@@ -67,8 +76,9 @@ impl Sphere {
         let mat = Box::new(Dielectric { refractive_index });
         Self {
             radius,
-            center: Ray3::without_time(center, Vec3::zero()),
+            center: Ray3::without_time(center.clone(), Vec3::zero()),
             mat,
+            bbox: Self::aabb(&center, radius),
         }
     }
 
@@ -78,7 +88,23 @@ impl Sphere {
 
     pub fn add_movement(mut self, center: Point) -> Self {
         let new_center = &center - &self.center.origin;
-        self.center = Ray3::without_time(self.center.origin, new_center);
+        self.center = Ray3::without_time(self.center.origin, new_center.clone());
+
+        // generate bounding box that spans the entire path of the sphere
+        let start = Self::aabb(&self.center.origin, self.radius);
+        let end = Self::aabb(&center, self.radius);
+        self.bbox = AABB::from_points(
+            &Point {
+                x: start.x.min.min(end.x.min),
+                y: start.y.min.min(end.y.min),
+                z: start.z.min.min(end.z.min),
+            },
+            &Point {
+                x: start.x.max.max(end.x.max),
+                y: start.y.max.max(end.y.max),
+                z: start.z.max.max(end.z.max),
+            },
+        );
         self
     }
 }
@@ -131,5 +157,9 @@ impl Hittable for Sphere {
             front_face,
             mat: &*self.mat,
         });
+    }
+
+    fn hit_aabb(&self, ray: &Ray3, t_range: &mut Interval) -> bool {
+        self.bbox.hit(ray, t_range)
     }
 }

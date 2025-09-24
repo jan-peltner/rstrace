@@ -40,6 +40,7 @@ pub struct Hit<'a> {
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit>;
+    fn hit_aabb(&self, ray: &Ray3, t_range: &mut Interval) -> bool;
 }
 
 pub struct Hittables {
