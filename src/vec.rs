@@ -23,6 +23,14 @@ impl Vec3 {
         }
     }
 
+    pub fn splat(val: f64) -> Self {
+        Vec3 {
+            x: val,
+            y: val,
+            z: val,
+        }
+    }
+
     pub fn rand_unit_square_offset(rng: &mut dyn RngCore) -> Self {
         Vec3 {
             x: rng.random_range(-0.5..0.5),
