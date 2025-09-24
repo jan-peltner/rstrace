@@ -15,7 +15,12 @@ pub struct Lambertian {
 
 impl Material for Lambertian {
     fn scatter(&self, incident_ray: &Ray3, hit: &Hit, rng: &mut dyn RngCore) -> Option<Scatter> {
-        let reflection_dir = &hit.normal + &Vec3::rand_unit_sphere_vec(rng);
+        let mut reflection_dir = &hit.normal + &Vec3::rand_unit_sphere_vec(rng);
+
+        if reflection_dir.near_zero() {
+            reflection_dir = hit.normal.clone();
+        }
+
         Some(Scatter {
             attenuation: &self.albedo,
             scattered_ray: Ray3::with_time(hit.p.clone(), reflection_dir, incident_ray.time),

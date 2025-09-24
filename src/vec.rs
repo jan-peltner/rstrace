@@ -111,6 +111,11 @@ impl Vec3 {
         self.len_sqr().sqrt()
     }
 
+    pub fn near_zero(&self) -> bool {
+        let eps = 1.0e-8;
+        self.x.abs() < eps && self.y.abs() < eps && self.z.abs() < eps
+    }
+
     pub fn norm(&self) -> Self {
         self / self.len()
     }
