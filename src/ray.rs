@@ -50,8 +50,15 @@ pub struct Hittables {
 }
 
 impl Hittables {
+    pub fn new() -> Self {
+        Self {
+            objects: Vec::new(),
+            bbox: AABB::empty(),
+        }
+    }
+
     pub fn add(&mut self, obj: Box<dyn Hittable>) {
-        self.bbox = obj.bbox();
+        self.bbox = AABB::from_bboxes(&self.bbox, &obj.bbox());
         self.objects.push(obj);
     }
 }
