@@ -12,6 +12,10 @@ impl AABB {
         Self { x, y, z }
     }
 
+    pub fn empty() -> Self {
+        Self::new(Interval::empty(), Interval::empty(), Interval::empty())
+    }
+
     pub fn from_points(a: &Point, b: &Point) -> Self {
         Self {
             x: if a.x <= b.x {
@@ -29,6 +33,14 @@ impl AABB {
             } else {
                 Interval { min: b.z, max: a.z }
             },
+        }
+    }
+
+    pub fn from_bboxes(a: &AABB, b: &AABB) -> Self {
+        Self {
+            x: Interval::from_intervals(&a.x, &b.x),
+            y: Interval::from_intervals(&a.y, &b.y),
+            z: Interval::from_intervals(&a.z, &b.z),
         }
     }
 
