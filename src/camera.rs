@@ -1,6 +1,6 @@
 use crate::{
     image::Image,
-    ray::{Hittables, Ray3},
+    ray::{Hittable, Hittables, Ray3},
     utils::{lerp, Interval},
     vec::{Pixel, Point, Vec3},
 };
@@ -179,7 +179,7 @@ impl<R: Rng> Camera<R> {
             max: f64::INFINITY,
         };
 
-        if let Some(hit) = world.check_hit(&ray, &mut t_range) {
+        if let Some(hit) = world.hit(&ray, &mut t_range) {
             if let Some(scatter) = hit.mat.scatter(ray, &hit, rng) {
                 return &self.color_ray(
                     &Ray3::with_time(hit.p, scatter.scattered_ray.dir, scatter.scattered_ray.time),
