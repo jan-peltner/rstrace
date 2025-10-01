@@ -159,7 +159,7 @@ impl Hittable for Sphere {
         });
     }
 
-    fn hit_aabb(&self, ray: &Ray3, t_range: &mut Interval) -> bool {
-        self.bbox.hit(ray, t_range)
+    fn bbox(&self) -> AABB {
+        self.bbox
     }
 }

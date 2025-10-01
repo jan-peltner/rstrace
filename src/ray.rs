@@ -1,4 +1,5 @@
 use crate::{
+    aabb::AABB,
     material::Material,
     utils::Interval,
     vec::{Color, Point, Vec3},
@@ -40,15 +41,23 @@ pub struct Hit<'a> {
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit>;
-    fn hit_aabb(&self, ray: &Ray3, t_range: &mut Interval) -> bool;
+    fn bbox(&self) -> AABB;
 }
 
 pub struct Hittables {
     pub objects: Vec<Box<dyn Hittable>>,
+    bbox: AABB,
 }
 
 impl Hittables {
-    pub fn check_hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
+    pub fn add(&mut self, obj: Box<dyn Hittable>) {
+        self.bbox = obj.bbox();
+        self.objects.push(obj);
+    }
+}
+
+impl Hittable for Hittables {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
         let mut closest_hit: Option<Hit> = None;
 
         for hittable in self.objects.iter() {
@@ -58,6 +67,10 @@ impl Hittables {
             }
         }
         closest_hit
+    }
+
+    fn bbox(&self) -> AABB {
+        self.bbox
     }
 }
 

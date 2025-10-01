@@ -1,5 +1,6 @@
 use crate::{ray::Ray3, utils::Interval, vec::Point};
 
+#[derive(Clone, Copy)]
 pub struct AABB {
     pub x: Interval,
     pub y: Interval,
