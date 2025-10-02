@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use rand::rngs::ThreadRng;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::Sphere;
@@ -32,7 +34,7 @@ fn main() {
     let camera = Camera::<ThreadRng>::with_default_rng(intrinsics, pose);
 
     // --- World ---
-    let world_sphere = Box::from(Sphere::lambertian_with_albedo(
+    let world_sphere = Rc::from(Sphere::lambertian_with_albedo(
         100.0,
         Point {
             x: 0.0,
@@ -46,7 +48,7 @@ fn main() {
         },
     ));
 
-    let center_sphere = Box::from(Sphere::lambertian_with_albedo(
+    let center_sphere = Rc::from(Sphere::lambertian_with_albedo(
         0.5,
         Point {
             x: 0.0,
@@ -60,7 +62,7 @@ fn main() {
         },
     ));
 
-    let left_sphere = Box::from(Sphere::metal_with_albedo(
+    let left_sphere = Rc::from(Sphere::metal_with_albedo(
         0.5,
         Point {
             x: -1.0,
@@ -74,7 +76,7 @@ fn main() {
         },
         0.0,
     ));
-    let right_sphere = Box::from(Sphere::metal_with_albedo(
+    let right_sphere = Rc::from(Sphere::metal_with_albedo(
         0.5,
         Point {
             x: 1.0,
@@ -89,10 +91,8 @@ fn main() {
         0.5,
     ));
 
-    let world = Hittables {
-        objects: vec![center_sphere, world_sphere, left_sphere, right_sphere],
-    };
+    let world = Hittables::from_vec(vec![center_sphere, left_sphere, right_sphere, world_sphere]);
 
     // --- Render ---
-    let _ = camera.render(world, "metal_pose_defocus.ppm");
+    let _ = camera.render(Rc::from(world), "metal_pose_defocus.ppm");
 }

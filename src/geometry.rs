@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{
     aabb::AABB,
     material::{Dielectric, Lambertian, Material, Metal},
@@ -9,7 +11,7 @@ use crate::{
 pub struct Sphere {
     pub radius: f64,
     pub center: Ray3,
-    mat: Box<dyn Material>,
+    mat: Rc<dyn Material>,
     bbox: AABB,
 }
 
@@ -20,7 +22,7 @@ impl Sphere {
     }
 
     fn new_lambertian(radius: f64, center: Point, albedo: Color) -> Self {
-        let mat = Box::new(Lambertian { albedo });
+        let mat = Rc::new(Lambertian { albedo });
         Self {
             radius,
             center: Ray3::without_time(center.clone(), Vec3::zero()),
@@ -46,7 +48,7 @@ impl Sphere {
     }
 
     fn new_metal(radius: f64, center: Point, albedo: Vec3, fuzz: f64) -> Self {
-        let mat = Box::new(Metal { albedo, fuzz });
+        let mat = Rc::new(Metal { albedo, fuzz });
         Self {
             radius,
             center: Ray3::without_time(center.clone(), Vec3::zero()),
@@ -73,7 +75,7 @@ impl Sphere {
     }
 
     fn new_dielectric(radius: f64, center: Point, refractive_index: f64) -> Self {
-        let mat = Box::new(Dielectric { refractive_index });
+        let mat = Rc::new(Dielectric { refractive_index });
         Self {
             radius,
             center: Ray3::without_time(center.clone(), Vec3::zero()),

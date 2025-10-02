@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use rstrace::camera::Camera;
 use rstrace::geometry::Sphere;
 use rstrace::ray::Hittables;
@@ -8,7 +10,7 @@ fn main() {
     let camera = Camera::default();
 
     // --- World ---
-    let world_sphere = Box::from(Sphere::lambertian_with_albedo(
+    let world_sphere = Rc::from(Sphere::lambertian_with_albedo(
         100.0,
         Point {
             x: 0.0,
@@ -22,7 +24,7 @@ fn main() {
         },
     ));
 
-    let center_sphere = Box::from(Sphere::lambertian_with_albedo(
+    let center_sphere = Rc::from(Sphere::lambertian_with_albedo(
         0.5,
         Point {
             x: 0.0,
@@ -36,7 +38,7 @@ fn main() {
         },
     ));
 
-    let left_sphere = Box::from(Sphere::dielectric(
+    let left_sphere = Rc::from(Sphere::dielectric(
         0.5,
         Point {
             x: -1.0,
@@ -46,7 +48,7 @@ fn main() {
         1.5,
     ));
 
-    let left_bubble = Box::from(Sphere::dielectric(
+    let left_bubble = Rc::from(Sphere::dielectric(
         0.4,
         Point {
             x: -1.0,
@@ -56,7 +58,7 @@ fn main() {
         1.0 / 1.5,
     ));
 
-    let right_sphere = Box::from(Sphere::metal_with_albedo(
+    let right_sphere = Rc::from(Sphere::metal_with_albedo(
         0.5,
         Point {
             x: 1.0,
@@ -71,16 +73,14 @@ fn main() {
         0.5,
     ));
 
-    let world = Hittables {
-        objects: vec![
-            center_sphere,
-            world_sphere,
-            left_sphere,
-            left_bubble,
-            right_sphere,
-        ],
-    };
+    let world = Hittables::from_vec(vec![
+        center_sphere,
+        world_sphere,
+        left_sphere,
+        left_bubble,
+        right_sphere,
+    ]);
 
     // --- Render ---
-    let _ = camera.render(world, "dielectric.ppm");
+    let _ = camera.render(Rc::from(world), "dielectric.ppm");
 }

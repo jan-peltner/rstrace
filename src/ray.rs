@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{
     aabb::AABB,
     material::Material,
@@ -45,7 +47,7 @@ pub trait Hittable {
 }
 
 pub struct Hittables {
-    pub objects: Vec<Box<dyn Hittable>>,
+    pub objects: Vec<Rc<dyn Hittable>>,
     bbox: AABB,
 }
 
@@ -57,7 +59,14 @@ impl Hittables {
         }
     }
 
-    pub fn add(&mut self, obj: Box<dyn Hittable>) {
+    pub fn from_vec(objects: Vec<Rc<dyn Hittable>>) -> Self {
+        Self {
+            objects,
+            bbox: AABB::empty(),
+        }
+    }
+
+    pub fn add(&mut self, obj: Rc<dyn Hittable>) {
         self.bbox = AABB::from_bboxes(&self.bbox, &obj.bbox());
         self.objects.push(obj);
     }
