@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::Sphere;
 use rstrace::ray::Hittables;
@@ -14,7 +16,7 @@ fn main() {
     let camera = Camera::new(intrinsics, CameraPose::default(), rand::rng());
 
     // --- World ---
-    let central_sphere = Box::from(
+    let central_sphere = Rc::from(
         Sphere::lambertian(
             0.5,
             Point {
@@ -30,7 +32,7 @@ fn main() {
         }),
     );
 
-    let world_sphere = Box::from(Sphere::lambertian(
+    let world_sphere = Rc::from(Sphere::lambertian(
         100.0,
         Point {
             x: 0.0,
@@ -39,10 +41,8 @@ fn main() {
         },
     ));
 
-    let world = Hittables {
-        objects: vec![central_sphere, world_sphere],
-    };
+    let world = Hittables::from_vec(vec![central_sphere, world_sphere]);
 
     // --- Render ---
-    let _ = camera.render(world, "lambertian_mblur.ppm");
+    let _ = camera.render(Rc::from(world), "lambertian_mblur.ppm");
 }

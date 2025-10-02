@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use rstrace::camera::Camera;
 use rstrace::geometry::Sphere;
 use rstrace::ray::Hittables;
@@ -9,7 +11,7 @@ fn main() {
 
     let r = (std::f64::consts::PI / 4.0).cos();
 
-    let left_sphere = Box::from(Sphere::lambertian_with_albedo(
+    let left_sphere = Rc::from(Sphere::lambertian_with_albedo(
         r,
         Point {
             x: -r,
@@ -19,7 +21,7 @@ fn main() {
         Color::blue(),
     ));
 
-    let right_sphere = Box::from(Sphere::lambertian_with_albedo(
+    let right_sphere = Rc::from(Sphere::lambertian_with_albedo(
         r,
         Point {
             x: r,
@@ -29,10 +31,8 @@ fn main() {
         Color::red(),
     ));
 
-    let world = Hittables {
-        objects: vec![left_sphere, right_sphere],
-    };
+    let world = Hittables::from_vec(vec![left_sphere, right_sphere]);
 
     // --- Render ---
-    let _ = camera.render(world, "fov90.ppm");
+    let _ = camera.render(Rc::from(world), "fov90.ppm");
 }

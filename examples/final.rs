@@ -1,5 +1,9 @@
+use std::rc::Rc;
+use std::time::Instant;
+
 use rand::rngs::ThreadRng;
 use rand::{random, Rng};
+use rstrace::bvh::BvhNode;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::Sphere;
 use rstrace::ray::Hittables;
@@ -10,7 +14,7 @@ fn main() {
     let mut intrinsics = CameraIntrinsics::default();
     intrinsics.vfov = 20.0;
     intrinsics.img_w = 800;
-    intrinsics.rays_per_pixel = 1000;
+    intrinsics.rays_per_pixel = 100;
     intrinsics.max_bounces = 50;
 
     let pose = CameraPose {
@@ -31,11 +35,9 @@ fn main() {
     let mut rng = rand::rng();
 
     // --- World ---
-    let mut world = Hittables {
-        objects: Vec::with_capacity(22 * 22 + 1),
-    };
+    let mut world = Hittables::new();
 
-    world.objects.push(Box::from(Sphere::lambertian_with_albedo(
+    world.add(Rc::from(Sphere::lambertian_with_albedo(
         1000.0,
         Point {
             x: 0.0,
@@ -69,25 +71,21 @@ fn main() {
             {
                 if rand_mat_sample < 0.8 {
                     let albedo = Color::rand(&mut rng);
-                    world.objects.push(Box::new(Sphere::lambertian_with_albedo(
-                        0.2, center, albedo,
-                    )));
+                    world.add(Rc::new(Sphere::lambertian_with_albedo(0.2, center, albedo)));
                 } else if rand_mat_sample < 0.95 {
                     let albedo = Color::rand_range(&mut rng, 0.0, 0.5);
                     let fuzz = rng.random_range(0.0..0.5);
-                    world.objects.push(Box::new(Sphere::metal_with_albedo(
+                    world.add(Rc::new(Sphere::metal_with_albedo(
                         0.2, center, albedo, fuzz,
                     )));
                 } else {
-                    world
-                        .objects
-                        .push(Box::new(Sphere::dielectric(0.2, center, 1.5)));
+                    world.add(Rc::new(Sphere::dielectric(0.2, center, 1.5)));
                 }
             }
         }
     }
 
-    world.objects.push(Box::new(Sphere::dielectric(
+    world.add(Rc::new(Sphere::dielectric(
         1.0,
         Point {
             x: 0.0,
@@ -96,7 +94,7 @@ fn main() {
         },
         1.9,
     )));
-    world.objects.push(Box::new(Sphere::lambertian_with_albedo(
+    world.add(Rc::new(Sphere::lambertian_with_albedo(
         1.0,
         Point {
             x: -4.0,
@@ -109,7 +107,7 @@ fn main() {
             z: 0.1,
         },
     )));
-    world.objects.push(Box::new(Sphere::metal_with_albedo(
+    world.add(Rc::new(Sphere::metal_with_albedo(
         1.0,
         Point {
             x: 4.0,
@@ -124,6 +122,16 @@ fn main() {
         0.0,
     )));
 
-    // // --- Render ---
-    let _ = camera.render(world, "final.ppm");
+    let world_root = BvhNode::from_hittables(&mut world.objects, &mut rng);
+
+    // --- Render ---
+    let now = Instant::now();
+    let _ = camera.render(Rc::from(world), "final_flat.ppm");
+    let time = now.elapsed().as_secs();
+    println!("Flat time: {time} secs");
+
+    let now = Instant::now();
+    let _ = camera.render(world_root, "final_bvh.ppm");
+    let time = now.elapsed().as_secs();
+    println!("Bvh time: {time} secs");
 }

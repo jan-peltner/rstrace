@@ -11,6 +11,7 @@ use std::{
     fs::File,
     io::{BufWriter, Write},
     path::Path,
+    rc::Rc,
 };
 
 pub struct CameraPose {
@@ -143,7 +144,7 @@ impl<R: Rng> Camera<R> {
         Camera::<ThreadRng>::with_default_rng(intrinsics, CameraPose::default())
     }
 
-    pub fn render(&self, world: Hittables, path: impl AsRef<Path>) -> std::io::Result<()> {
+    pub fn render(&self, world: Rc<dyn Hittable>, path: impl AsRef<Path>) -> std::io::Result<()> {
         println!("Rendering image @ {}x{}...", self.img_w, self.img_h);
 
         let image = Image::new(self.img_w, self.img_h, |x, y| {
@@ -152,7 +153,7 @@ impl<R: Rng> Camera<R> {
 
             for _ in 0..self.rays_per_pixel {
                 let ray = self.get_ray(x, y, rng);
-                px = px + self.color_ray(&ray, &world, self.max_bounces, rng);
+                px = px + self.color_ray(&ray, world.clone(), self.max_bounces, rng);
             }
 
             px / self.rays_per_pixel as f64
@@ -165,7 +166,13 @@ impl<R: Rng> Camera<R> {
         Ok(())
     }
 
-    fn color_ray(&self, ray: &Ray3, world: &Hittables, bounces_left: u32, rng: &mut R) -> Pixel {
+    fn color_ray(
+        &self,
+        ray: &Ray3,
+        world: Rc<dyn Hittable>,
+        bounces_left: u32,
+        rng: &mut R,
+    ) -> Pixel {
         if bounces_left <= 0 {
             return Pixel {
                 x: 0.0,
@@ -183,7 +190,7 @@ impl<R: Rng> Camera<R> {
             if let Some(scatter) = hit.mat.scatter(ray, &hit, rng) {
                 return &self.color_ray(
                     &Ray3::with_time(hit.p, scatter.scattered_ray.dir, scatter.scattered_ray.time),
-                    world,
+                    world.clone(),
                     bounces_left - 1,
                     rng,
                 ) * scatter.attenuation;
