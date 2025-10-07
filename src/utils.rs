@@ -9,7 +9,7 @@ pub fn linear_to_gamma(val: f64) -> f64 {
     val.sqrt()
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Interval {
     pub min: f64,
     pub max: f64,

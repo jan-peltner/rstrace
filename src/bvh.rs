@@ -18,6 +18,16 @@ pub struct BvhNode {
     bbox: AABB,
 }
 
+impl std::fmt::Debug for BvhNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BvhNode")
+            .field("bbox", &self.bbox)
+            .field("left", &self.left)
+            .field("right", &self.right)
+            .finish()
+    }
+}
+
 impl Hittable for BvhNode {
     fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
         if !self.bbox().hit(ray, t_range) {
@@ -34,7 +44,7 @@ impl Hittable for BvhNode {
 
         let hit_right = self.right.hit(ray, t_range);
 
-        hit_left.or(hit_right)
+        hit_right.or(hit_left)
     }
 
     fn bbox(&self) -> AABB {
@@ -58,32 +68,30 @@ impl BvhNode {
     ) -> Rc<dyn Hittable> {
         let axis_index: usize = rng.random_range(0..3);
 
-        let span = end - start;
+        let (left, right) = match end - start {
+            1 => {
+                let obj = hittables[start].clone();
+                (obj.clone(), obj)
+            }
+            2 => (hittables[start].clone(), hittables[start + 1].clone()),
+            span => {
+                hittables[start..end].sort_by(|a, b| {
+                    let a_box = a.bbox();
+                    let b_box = b.bbox();
+                    let a_min = a_box.axis_interval(axis_index).min;
+                    let b_min = b_box.axis_interval(axis_index).min;
 
-        let left: Rc<dyn Hittable>;
-        let right: Rc<dyn Hittable>;
+                    a_min.partial_cmp(&b_min).unwrap()
+                });
 
-        if span == 1 {
-            left = hittables[start].clone();
-            right = hittables[start].clone();
-        } else if span == 2 {
-            left = hittables[start].clone();
-            right = hittables[start + 1].clone();
-        } else {
-            hittables[start..end].sort_by(|a, b| {
-                let a_box = a.bbox();
-                let b_box = b.bbox();
-                let a_min = a_box.axis_interval(axis_index).min;
-                let b_min = b_box.axis_interval(axis_index).min;
+                let mid = start + span / 2;
 
-                a_min.partial_cmp(&b_min).unwrap()
-            });
-
-            let mid = start + span / 2;
-
-            left = Self::build_tree(hittables, start, mid, rng);
-            right = Self::build_tree(hittables, mid, end, rng);
-        }
+                (
+                    Self::build_tree(hittables, start, mid, rng),
+                    Self::build_tree(hittables, mid, end, rng),
+                )
+            }
+        };
 
         Rc::from(Self {
             bbox: AABB::from_bboxes(&left.bbox(), &right.bbox()),

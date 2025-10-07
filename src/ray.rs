@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::rc::Rc;
 
 use crate::{
@@ -8,7 +9,7 @@ use crate::{
 };
 
 /// Ray in 3d space. A ray has an origin point `Point` and a direction `Vec3`.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Ray3 {
     pub origin: Point,
     pub dir: Vec3,
@@ -41,11 +42,12 @@ pub struct Hit<'a> {
     pub mat: &'a dyn Material,
 }
 
-pub trait Hittable {
+pub trait Hittable: Debug {
     fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit>;
     fn bbox(&self) -> AABB;
 }
 
+#[derive(Debug)]
 pub struct Hittables {
     pub objects: Vec<Rc<dyn Hittable>>,
     bbox: AABB,

@@ -1,14 +1,16 @@
 use rand::{Rng, RngCore};
+use std::fmt::Debug;
 
 use crate::{
     ray::{Hit, Ray3, Scatter},
     vec::{Color, Vec3},
 };
 
-pub trait Material {
+pub trait Material: Debug {
     fn scatter(&self, incident_ray: &Ray3, hit: &Hit, rng: &mut dyn RngCore) -> Option<Scatter>;
 }
 
+#[derive(Debug)]
 pub struct Lambertian {
     pub albedo: Color,
 }
@@ -28,6 +30,7 @@ impl Material for Lambertian {
     }
 }
 
+#[derive(Debug)]
 pub struct Metal {
     pub albedo: Color,
     pub fuzz: f64,
@@ -47,6 +50,7 @@ impl Material for Metal {
     }
 }
 
+#[derive(Debug)]
 pub struct Dielectric {
     pub refractive_index: f64,
 }
