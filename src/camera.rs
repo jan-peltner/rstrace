@@ -1,6 +1,6 @@
 use crate::{
     image::Image,
-    ray::{Hittable, Hittables, Ray3},
+    ray::{Hittable, Ray3},
     utils::{lerp, Interval},
     vec::{Pixel, Point, Vec3},
 };

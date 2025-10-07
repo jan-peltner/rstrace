@@ -1,7 +1,7 @@
 use rand::{Rng, RngCore};
 
 /// Three-dimensional vector that's used for points, colors, offsets etc.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,

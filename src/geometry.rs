@@ -8,6 +8,7 @@ use crate::{
     vec::{Color, Point, Vec3},
 };
 
+#[derive(Debug)]
 pub struct Sphere {
     pub radius: f64,
     pub center: Ray3,
