@@ -5,5 +5,6 @@ pub mod geometry;
 pub mod image;
 pub mod material;
 pub mod ray;
+pub mod texture;
 pub mod utils;
 pub mod vec;
