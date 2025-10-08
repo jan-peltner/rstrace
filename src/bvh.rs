@@ -30,7 +30,7 @@ impl std::fmt::Debug for BvhNode {
 
 impl Hittable for BvhNode {
     fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
-        if !self.bbox().hit(ray, t_range) {
+        if !self.bbox().hit(ray, *t_range) {
             return None;
         }
 
