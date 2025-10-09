@@ -37,6 +37,7 @@ impl Ray3 {
 pub struct Hit<'a> {
     pub p: Point,
     pub normal: Vec3,
+    pub uv: (f64, f64),
     pub front_face: bool,
     pub t: f64,
     pub mat: &'a dyn Material,

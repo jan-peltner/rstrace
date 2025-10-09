@@ -1,9 +1,11 @@
 use crate::vec::{Color, Point};
+use std::fmt::Debug;
 
-pub trait Texture {
-    fn value(&self, u: f64, v: f64, p: &Point) -> Color;
+pub trait Texture: Debug {
+    fn value(&self, uv: (f64, f64), p: &Point) -> &Color;
 }
 
+#[derive(Debug)]
 pub struct SolidTex {
     albedo: Color,
 }
@@ -39,11 +41,12 @@ impl SolidTex {
 }
 
 impl Texture for SolidTex {
-    fn value(&self, _u: f64, _v: f64, _p: &Point) -> Color {
-        self.albedo.clone()
+    fn value(&self, _uv: (f64, f64), _p: &Point) -> &Color {
+        &self.albedo
     }
 }
 
+#[derive(Debug)]
 pub struct CheckerTex {
     even: SolidTex,
     odd: SolidTex,
@@ -61,15 +64,15 @@ impl CheckerTex {
 }
 
 impl Texture for CheckerTex {
-    fn value(&self, u: f64, v: f64, p: &Point) -> Color {
+    fn value(&self, uv: (f64, f64), p: &Point) -> &Color {
         let x = (p.x * self.inv_scale).floor() as i32;
         let y = (p.y * self.inv_scale).floor() as i32;
         let z = (p.z * self.inv_scale).floor() as i32;
 
         if (x + y + z) % 2 == 0 {
-            self.even.value(u, v, p)
+            self.even.value(uv, p)
         } else {
-            self.odd.value(u, v, p)
+            self.odd.value(uv, p)
         }
     }
 }

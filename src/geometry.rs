@@ -4,6 +4,7 @@ use crate::{
     aabb::AABB,
     material::{Dielectric, Lambertian, Material, Metal},
     ray::{Hit, Hittable, Ray3},
+    texture::{SolidTex, Texture},
     utils::Interval,
     vec::{Color, Point, Vec3},
 };
@@ -22,8 +23,8 @@ impl Sphere {
         AABB::from_points(&(center - &radius_vec), &(center + &radius_vec))
     }
 
-    fn new_lambertian(radius: f64, center: Point, albedo: Color) -> Self {
-        let mat = Rc::new(Lambertian { albedo });
+    fn new_lambertian<T: Texture + 'static>(radius: f64, center: Point, tex: T) -> Self {
+        let mat = Rc::new(Lambertian { tex });
         Self {
             radius,
             center: Ray3::without_time(center.clone(), Vec3::zero()),
@@ -36,16 +37,24 @@ impl Sphere {
         Self::new_lambertian(
             radius,
             center,
-            Color {
+            SolidTex::new(Color {
                 x: 0.5,
                 y: 0.5,
                 z: 0.5,
-            },
+            }),
         )
     }
 
     pub fn lambertian_with_albedo(radius: f64, center: Point, albedo: Color) -> Self {
-        Self::new_lambertian(radius, center, albedo)
+        Self::new_lambertian(radius, center, SolidTex::new(albedo))
+    }
+
+    pub fn lambertian_with_texture<T: Texture + 'static>(
+        radius: f64,
+        center: Point,
+        tex: T,
+    ) -> Self {
+        Self::new_lambertian(radius, center, tex)
     }
 
     fn new_metal(radius: f64, center: Point, albedo: Vec3, fuzz: f64) -> Self {
@@ -159,6 +168,7 @@ impl Hittable for Sphere {
             },
             front_face,
             mat: &*self.mat,
+            uv: (0.0, 0.0),
         });
     }
 

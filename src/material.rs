@@ -3,6 +3,7 @@ use std::fmt::Debug;
 
 use crate::{
     ray::{Hit, Ray3, Scatter},
+    texture::Texture,
     vec::{Color, Vec3},
 };
 
@@ -11,11 +12,11 @@ pub trait Material: Debug {
 }
 
 #[derive(Debug)]
-pub struct Lambertian {
-    pub albedo: Color,
+pub struct Lambertian<T: Texture> {
+    pub tex: T,
 }
 
-impl Material for Lambertian {
+impl<T: Texture> Material for Lambertian<T> {
     fn scatter(&self, incident_ray: &Ray3, hit: &Hit, rng: &mut dyn RngCore) -> Option<Scatter> {
         let mut reflection_dir = &hit.normal + &Vec3::rand_unit_sphere_vec(rng);
 
@@ -24,7 +25,7 @@ impl Material for Lambertian {
         }
 
         Some(Scatter {
-            attenuation: &self.albedo,
+            attenuation: &self.tex.value(hit.uv, &hit.p),
             scattered_ray: Ray3::with_time(hit.p.clone(), reflection_dir, incident_ray.time),
         })
     }
