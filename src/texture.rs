@@ -76,3 +76,31 @@ impl Texture for CheckerTex {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct StripeTex {
+    even: SolidTex,
+    odd: SolidTex,
+    inv_scale: f64,
+}
+
+impl StripeTex {
+    pub fn new(c1: Color, c2: Color, scale: f64) -> Self {
+        Self {
+            even: SolidTex::new(c1),
+            odd: SolidTex::new(c2),
+            inv_scale: 1.0 / scale,
+        }
+    }
+}
+
+impl Texture for StripeTex {
+    fn value(&self, uv: (f64, f64), p: &Point) -> &Color {
+        let x = (p.x * self.inv_scale).floor() as i32;
+        if x % 2 == 0 {
+            self.even.value(uv, p)
+        } else {
+            self.odd.value(uv, p)
+        }
+    }
+}
