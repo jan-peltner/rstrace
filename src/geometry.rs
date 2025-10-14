@@ -1,3 +1,4 @@
+use core::f64::{self, consts::PI};
 use std::rc::Rc;
 
 use crate::{
@@ -119,6 +120,14 @@ impl Sphere {
         );
         self
     }
+
+    fn get_uv(intersection: &Point) -> (f64, f64) {
+        let polar = (intersection.y * -1.0).acos();
+        let azimuth = (intersection.z * -1.0).atan2(intersection.x) + PI;
+
+        // normalize to [0,1]
+        (azimuth / (2.0 * PI), polar / PI)
+    }
 }
 
 impl Hittable for Sphere {
@@ -157,6 +166,7 @@ impl Hittable for Sphere {
         return Some(Hit {
             p: intersection_point.clone(),
             t: eval,
+            uv: Self::get_uv(&outward_normal),
             // Determine if the ray is hitting the front face or back face of the sphere.
             // A front face hit occurs when the ray's direction is generally opposite to the
             // surface's inherent outward normal. A back face hit occurs when they are generally
@@ -168,7 +178,6 @@ impl Hittable for Sphere {
             },
             front_face,
             mat: &*self.mat,
-            uv: (0.0, 0.0),
         });
     }
 

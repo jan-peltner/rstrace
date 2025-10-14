@@ -193,7 +193,7 @@ impl<R: Rng> Camera<R> {
                     world.clone(),
                     bounces_left - 1,
                     rng,
-                ) * scatter.attenuation;
+                ) * &scatter.attenuation;
             } else {
                 return Pixel::zero();
             }

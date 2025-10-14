@@ -138,36 +138,45 @@ impl Vec3 {
 }
 
 impl Color {
+    pub fn from_rgb(rgb: (u8, u8, u8)) -> Self {
+        let inv = 1.0 / u8::MAX as f64;
+        Self {
+            x: rgb.0 as f64 * inv,
+            y: rgb.1 as f64 * inv,
+            z: rgb.2 as f64 * inv,
+        }
+    }
+
     pub fn red() -> Self {
-        return Color {
+        Self {
             x: 1.0,
             y: 0.0,
             z: 0.0,
-        };
+        }
     }
 
     pub fn green() -> Self {
-        return Color {
+        Self {
             x: 0.0,
             y: 1.0,
             z: 0.0,
-        };
+        }
     }
 
     pub fn blue() -> Self {
-        return Color {
+        Self {
             x: 0.0,
             y: 0.0,
             z: 1.0,
-        };
+        }
     }
 
     pub fn white() -> Self {
-        return Color {
+        Self {
             x: 1.0,
             y: 1.0,
             z: 1.0,
-        };
+        }
     }
 }
 

@@ -25,7 +25,7 @@ impl<T: Texture> Material for Lambertian<T> {
         }
 
         Some(Scatter {
-            attenuation: &self.tex.value(hit.uv, &hit.p),
+            attenuation: self.tex.value(hit.uv, &hit.p),
             scattered_ray: Ray3::with_time(hit.p.clone(), reflection_dir, incident_ray.time),
         })
     }
@@ -40,7 +40,7 @@ pub struct Metal {
 impl Material for Metal {
     fn scatter(&self, incident_ray: &Ray3, hit: &Hit, rng: &mut dyn RngCore) -> Option<Scatter> {
         Some(Scatter {
-            attenuation: &self.albedo,
+            attenuation: self.albedo.clone(),
             scattered_ray: Ray3::with_time(
                 hit.p.clone(),
                 incident_ray.dir.norm().reflect(&hit.normal)
@@ -92,7 +92,7 @@ impl Material for Dielectric {
         };
 
         Some(Scatter {
-            attenuation: &Color {
+            attenuation: Color {
                 x: 1.0,
                 y: 1.0,
                 z: 1.0,

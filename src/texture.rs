@@ -2,7 +2,7 @@ use crate::vec::{Color, Point};
 use std::fmt::Debug;
 
 pub trait Texture: Debug {
-    fn value(&self, uv: (f64, f64), p: &Point) -> &Color;
+    fn value(&self, uv: (f64, f64), p: &Point) -> Color;
 }
 
 #[derive(Debug)]
@@ -41,8 +41,8 @@ impl SolidTex {
 }
 
 impl Texture for SolidTex {
-    fn value(&self, _uv: (f64, f64), _p: &Point) -> &Color {
-        &self.albedo
+    fn value(&self, _uv: (f64, f64), _p: &Point) -> Color {
+        self.albedo.clone()
     }
 }
 
@@ -50,7 +50,7 @@ impl Texture for SolidTex {
 pub struct CheckerTex {
     even: SolidTex,
     odd: SolidTex,
-    inv_scale: f64,
+    scale: f64,
 }
 
 impl CheckerTex {
@@ -58,18 +58,17 @@ impl CheckerTex {
         Self {
             even: SolidTex::new(c1),
             odd: SolidTex::new(c2),
-            inv_scale: 1.0 / scale,
+            scale,
         }
     }
 }
 
 impl Texture for CheckerTex {
-    fn value(&self, uv: (f64, f64), p: &Point) -> &Color {
-        let x = (p.x * self.inv_scale).floor() as i32;
-        let y = (p.y * self.inv_scale).floor() as i32;
-        let z = (p.z * self.inv_scale).floor() as i32;
+    fn value(&self, uv: (f64, f64), p: &Point) -> Color {
+        let scaled_u = (uv.0 * self.scale).floor() as i32;
+        let scaled_v = (uv.1 * self.scale).floor() as i32;
 
-        if (x + y + z) % 2 == 0 {
+        if (scaled_u + scaled_v) % 2 == 0 {
             self.even.value(uv, p)
         } else {
             self.odd.value(uv, p)
@@ -78,29 +77,63 @@ impl Texture for CheckerTex {
 }
 
 #[derive(Debug)]
+pub enum Orientation {
+    Vertical,
+    Horizontal,
+}
+
+#[derive(Debug)]
 pub struct StripeTex {
     even: SolidTex,
     odd: SolidTex,
-    inv_scale: f64,
+    scale: f64,
+    orientation: Orientation,
 }
 
 impl StripeTex {
-    pub fn new(c1: Color, c2: Color, scale: f64) -> Self {
+    pub fn new(c1: Color, c2: Color, scale: f64, orientation: Orientation) -> Self {
         Self {
             even: SolidTex::new(c1),
             odd: SolidTex::new(c2),
-            inv_scale: 1.0 / scale,
+            scale,
+            orientation,
         }
     }
 }
 
 impl Texture for StripeTex {
-    fn value(&self, uv: (f64, f64), p: &Point) -> &Color {
-        let x = (p.x * self.inv_scale).floor() as i32;
-        if x % 2 == 0 {
+    fn value(&self, uv: (f64, f64), p: &Point) -> Color {
+        let or = match self.orientation {
+            Orientation::Vertical => (uv.0 * self.scale).floor() as i32,
+            Orientation::Horizontal => (uv.1 * self.scale).floor() as i32,
+        };
+        if or % 2 == 0 {
             self.even.value(uv, p)
         } else {
             self.odd.value(uv, p)
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct UVTex {
+    pub color_u: SolidTex,
+    pub color_v: SolidTex,
+}
+
+impl UVTex {
+    pub fn new() -> Self {
+        Self {
+            color_u: SolidTex::red(),
+            color_v: SolidTex::green(),
+        }
+    }
+}
+
+impl Texture for UVTex {
+    fn value(&self, uv: (f64, f64), p: &Point) -> Color {
+        let (u, v) = uv;
+
+        self.color_u.value(uv, p) * u + self.color_v.value(uv, p) * v
     }
 }

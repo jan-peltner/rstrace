@@ -93,7 +93,7 @@ impl Hittable for Hittables {
     }
 }
 
-pub struct Scatter<'a> {
-    pub attenuation: &'a Color,
+pub struct Scatter {
+    pub attenuation: Color,
     pub scattered_ray: Ray3,
 }
