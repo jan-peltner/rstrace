@@ -1,3 +1,4 @@
+use image::Rgb;
 use rand::{Rng, RngCore};
 
 /// Three-dimensional vector that's used for points, colors, offsets etc.
@@ -138,15 +139,6 @@ impl Vec3 {
 }
 
 impl Color {
-    pub fn from_rgb(rgb: (u8, u8, u8)) -> Self {
-        let inv = 1.0 / u8::MAX as f64;
-        Self {
-            x: rgb.0 as f64 * inv,
-            y: rgb.1 as f64 * inv,
-            z: rgb.2 as f64 * inv,
-        }
-    }
-
     pub fn red() -> Self {
         Self {
             x: 1.0,
@@ -177,6 +169,24 @@ impl Color {
             y: 1.0,
             z: 1.0,
         }
+    }
+}
+
+impl From<(u8, u8, u8)> for Color {
+    fn from(value: (u8, u8, u8)) -> Self {
+        let inv = 1.0 / u8::MAX as f64;
+        Self {
+            x: value.0 as f64 * inv,
+            y: value.1 as f64 * inv,
+            z: value.2 as f64 * inv,
+        }
+    }
+}
+
+impl From<&Rgb<u8>> for Color {
+    fn from(value: &Rgb<u8>) -> Self {
+        let value = value.0;
+        (value[0], value[1], value[2]).into()
     }
 }
 

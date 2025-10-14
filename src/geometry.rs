@@ -131,7 +131,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit<'_>> {
         let current_center = self.center.at(ray.time);
         let cq = &ray.origin - &current_center;
         let a = ray.dir.dot(&ray.dir);

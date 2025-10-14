@@ -44,7 +44,7 @@ pub struct Hit<'a> {
 }
 
 pub trait Hittable: Debug {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit>;
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit<'_>>;
     fn bbox(&self) -> AABB;
 }
 
@@ -76,7 +76,7 @@ impl Hittables {
 }
 
 impl Hittable for Hittables {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit<'_>> {
         let mut closest_hit: Option<Hit> = None;
 
         for hittable in self.objects.iter() {

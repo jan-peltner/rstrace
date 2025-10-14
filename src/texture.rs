@@ -1,5 +1,12 @@
-use crate::vec::{Color, Point};
-use std::fmt::Debug;
+use image::{ImageError, ImageReader, RgbImage};
+
+use crate::{
+    utils::Interval,
+    vec::{Color, Point},
+};
+use std::{fmt::Debug, path::Path};
+
+const UV_INTERVAL: Interval = Interval { min: 0.0, max: 1.0 };
 
 pub trait Texture: Debug {
     fn value(&self, uv: (f64, f64), p: &Point) -> Color;
@@ -135,5 +142,36 @@ impl Texture for UVTex {
         let (u, v) = uv;
 
         self.color_u.value(uv, p) * u + self.color_v.value(uv, p) * v
+    }
+}
+
+#[derive(Debug)]
+pub struct ImageTex {
+    data: RgbImage,
+}
+
+impl Texture for ImageTex {
+    fn value(&self, uv: (f64, f64), _p: &Point) -> Color {
+        let width = self.data.width();
+        let height = self.data.height();
+
+        let u = UV_INTERVAL.clamp(uv.0);
+        // flip v so that 0 starts at the bottom
+        let v = 1.0 - UV_INTERVAL.clamp(uv.1);
+
+        let i = (u * (width - 1) as f64) as u32;
+        let j = (v * (height - 1) as f64) as u32;
+
+        self.data.get_pixel(i, j).into()
+    }
+}
+
+impl ImageTex {
+    pub fn new(path: impl AsRef<Path>) -> Result<Self, ImageError> {
+        let img = ImageReader::open(path)
+            .map_err(|err| ImageError::IoError(err))?
+            .decode()?
+            .into_rgb8();
+        Ok(Self { data: img })
     }
 }
