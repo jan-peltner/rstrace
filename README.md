@@ -1,7 +1,7 @@
 A Rust implementation of [Ray Tracing in One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html).
 
 ![Book One Final Scene](render/final.png)
-
+![Procedural Textures](render/proc_tex.png)
 # Examples
 Run the examples from the book with `cargo run`. For example:
 
