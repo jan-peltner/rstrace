@@ -44,6 +44,20 @@ impl AABB {
         }
     }
 
+    pub fn maybe_pad(mut self) -> Self {
+        let delta: f64 = 0.0001;
+        if self.x.size() <= delta {
+            self.x = self.x.expand(delta);
+        }
+        if self.y.size() <= delta {
+            self.y = self.y.expand(delta);
+        }
+        if self.z.size() <= delta {
+            self.z = self.z.expand(delta);
+        }
+        self
+    }
+
     pub fn axis_interval(&self, index: usize) -> &Interval {
         match index {
             0 => &self.x,
