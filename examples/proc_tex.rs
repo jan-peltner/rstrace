@@ -65,7 +65,6 @@ fn main() {
         },
         SolidTex::new((88, 91, 112).into()),
     ));
-
     let mut world = Hittables::from_vec(vec![
         central_sphere,
         world_sphere,
