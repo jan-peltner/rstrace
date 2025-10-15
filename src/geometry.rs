@@ -1,5 +1,4 @@
 use core::f64::{self, consts::PI};
-use std::rc::Rc;
 
 use crate::{
     aabb::AABB,
@@ -11,29 +10,30 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct Sphere {
+pub struct Sphere<M: Material> {
     pub radius: f64,
     pub center: Ray3,
-    mat: Rc<dyn Material>,
+    mat: M,
     bbox: AABB,
 }
 
-impl Sphere {
-    fn aabb(center: &Point, radius: f64) -> AABB {
-        let radius_vec = Vec3::splat(radius);
-        AABB::from_points(&(center - &radius_vec), &(center + &radius_vec))
-    }
-
-    fn new_lambertian<T: Texture + 'static>(radius: f64, center: Point, tex: T) -> Self {
-        let mat = Rc::new(Lambertian { tex });
+impl<T: Texture> Sphere<Lambertian<T>> {
+    fn new_lambertian(radius: f64, center: Point, tex: T) -> Self {
+        let mat = Lambertian { tex };
         Self {
             radius,
             center: Ray3::without_time(center.clone(), Vec3::zero()),
             mat,
-            bbox: Self::aabb(&center, radius),
+            bbox: Sphere::<Lambertian<T>>::aabb(&center, radius),
         }
     }
 
+    pub fn lambertian_with_texture(radius: f64, center: Point, tex: T) -> Self {
+        Self::new_lambertian(radius, center, tex)
+    }
+}
+
+impl Sphere<Lambertian<SolidTex>> {
     pub fn lambertian(radius: f64, center: Point) -> Self {
         Self::new_lambertian(
             radius,
@@ -49,17 +49,11 @@ impl Sphere {
     pub fn lambertian_with_albedo(radius: f64, center: Point, albedo: Color) -> Self {
         Self::new_lambertian(radius, center, SolidTex::new(albedo))
     }
+}
 
-    pub fn lambertian_with_texture<T: Texture + 'static>(
-        radius: f64,
-        center: Point,
-        tex: T,
-    ) -> Self {
-        Self::new_lambertian(radius, center, tex)
-    }
-
+impl Sphere<Metal> {
     fn new_metal(radius: f64, center: Point, albedo: Vec3, fuzz: f64) -> Self {
-        let mat = Rc::new(Metal { albedo, fuzz });
+        let mat = Metal { albedo, fuzz };
         Self {
             radius,
             center: Ray3::without_time(center.clone(), Vec3::zero()),
@@ -84,9 +78,11 @@ impl Sphere {
     pub fn metal_with_albedo(radius: f64, center: Point, albedo: Color, fuzz: f64) -> Self {
         Self::new_metal(radius, center, albedo, fuzz)
     }
+}
 
+impl Sphere<Dielectric> {
     fn new_dielectric(radius: f64, center: Point, refractive_index: f64) -> Self {
-        let mat = Rc::new(Dielectric { refractive_index });
+        let mat = Dielectric { refractive_index };
         Self {
             radius,
             center: Ray3::without_time(center.clone(), Vec3::zero()),
@@ -97,6 +93,13 @@ impl Sphere {
 
     pub fn dielectric(radius: f64, center: Point, refractive_index: f64) -> Self {
         Self::new_dielectric(radius, center, refractive_index)
+    }
+}
+
+impl<M: Material> Sphere<M> {
+    fn aabb(center: &Point, radius: f64) -> AABB {
+        let radius_vec = Vec3::splat(radius);
+        AABB::from_points(&(center - &radius_vec), &(center + &radius_vec))
     }
 
     pub fn add_movement(mut self, center: Point) -> Self {
@@ -130,7 +133,7 @@ impl Sphere {
     }
 }
 
-impl Hittable for Sphere {
+impl<M: Material> Hittable for Sphere<M> {
     fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit<'_>> {
         let current_center = self.center.at(ray.time);
         let cq = &ray.origin - &current_center;
@@ -178,7 +181,7 @@ impl Hittable for Sphere {
                 outward_normal * -1.0
             },
             front_face,
-            mat: &*self.mat,
+            mat: &self.mat,
         });
     }
 
