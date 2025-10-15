@@ -1,3 +1,4 @@
+use std::f64::consts::PI;
 use std::rc::Rc;
 
 use rand::rngs::ThreadRng;
@@ -48,7 +49,7 @@ fn main() {
         ImageTex::new("assets/textures/moon.jpg").unwrap(),
     ));
 
-    let world_sphere = Rc::from(Sphere::lambertian_with_texture(
+    let mut world_sphere = Sphere::lambertian_with_texture(
         100.0,
         Point {
             x: 0.0,
@@ -56,7 +57,9 @@ fn main() {
             z: -1.0,
         },
         SolidTex::new((88, 91, 112).into()),
-    ));
+    );
+    world_sphere.rotate_texture(2.0 * PI);
+    let world_sphere = Rc::from(world_sphere);
 
     let mut world = Hittables::from_vec(vec![mars, world_sphere, earth, moon]);
     let world_root = BvhNode::from_hittables(&mut world.objects, &mut rand::rng());

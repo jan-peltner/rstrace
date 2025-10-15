@@ -15,6 +15,8 @@ pub struct Sphere<M: Material> {
     pub center: Ray3,
     mat: M,
     bbox: AABB,
+    // normalized azimuthal rotation
+    naz_rot: f64,
 }
 
 impl<T: Texture> Sphere<Lambertian<T>> {
@@ -25,11 +27,16 @@ impl<T: Texture> Sphere<Lambertian<T>> {
             center: Ray3::without_time(center.clone(), Vec3::zero()),
             mat,
             bbox: Sphere::<Lambertian<T>>::aabb(&center, radius),
+            naz_rot: 0.0,
         }
     }
 
     pub fn lambertian_with_texture(radius: f64, center: Point, tex: T) -> Self {
         Self::new_lambertian(radius, center, tex)
+    }
+
+    pub fn rotate_texture(&mut self, rad: f64) {
+        self.naz_rot = (rad / (2.0 * PI)) % 1.0;
     }
 }
 
@@ -59,6 +66,7 @@ impl Sphere<Metal> {
             center: Ray3::without_time(center.clone(), Vec3::zero()),
             mat,
             bbox: Self::aabb(&center, radius),
+            naz_rot: 0.0,
         }
     }
 
@@ -88,6 +96,7 @@ impl Sphere<Dielectric> {
             center: Ray3::without_time(center.clone(), Vec3::zero()),
             mat,
             bbox: Self::aabb(&center, radius),
+            naz_rot: 0.0,
         }
     }
 
@@ -124,12 +133,16 @@ impl<M: Material> Sphere<M> {
         self
     }
 
-    fn get_uv(intersection: &Point) -> (f64, f64) {
+    fn get_uv(&self, intersection: &Point) -> (f64, f64) {
         let polar = (intersection.y * -1.0).acos();
         let azimuth = (intersection.z * -1.0).atan2(intersection.x) + PI;
 
         // normalize to [0,1]
-        (azimuth / (2.0 * PI), polar / PI)
+        let u = azimuth / (2.0 * PI);
+        let v = polar / PI;
+
+        // [0,1)
+        ((u + self.naz_rot) % 1.0, v % 1.0)
     }
 }
 
@@ -174,7 +187,7 @@ impl<M: Material> Hittable for Sphere<M> {
         return Some(Hit {
             p: intersection_point.clone(),
             t: eval,
-            uv: Self::get_uv(&outward_normal),
+            uv: self.get_uv(&outward_normal),
             normal: if front_face {
                 outward_normal
             } else {
