@@ -4,11 +4,14 @@ use std::fmt::Debug;
 use crate::{
     ray::{Hit, Ray3, Scatter},
     texture::Texture,
-    vec::{Color, Vec3},
+    vec::{Color, Point, Vec3},
 };
 
 pub trait Material: Debug {
     fn scatter(&self, incident_ray: &Ray3, hit: &Hit, rng: &mut dyn RngCore) -> Option<Scatter>;
+    fn emitted(&self, _uv: (f64, f64), _p: &Point) -> Color {
+        Color::zero()
+    }
 }
 
 #[derive(Debug)]
@@ -99,5 +102,19 @@ impl Material for Dielectric {
             },
             scattered_ray: Ray3::with_time(hit.p.clone(), dir, incident_ray.time),
         })
+    }
+}
+
+#[derive(Debug)]
+pub struct Emitter<T: Texture> {
+    pub tex: T,
+}
+
+impl<T: Texture> Material for Emitter<T> {
+    fn scatter(&self, _incident_ray: &Ray3, _hit: &Hit, _rng: &mut dyn RngCore) -> Option<Scatter> {
+        None
+    }
+    fn emitted(&self, uv: (f64, f64), p: &Point) -> Color {
+        self.tex.value(uv, p)
     }
 }

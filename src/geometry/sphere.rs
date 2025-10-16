@@ -2,7 +2,7 @@ use core::f64::{self, consts::PI};
 
 use crate::{
     aabb::AABB,
-    material::{Dielectric, Lambertian, Material, Metal},
+    material::{Dielectric, Emitter, Lambertian, Material, Metal},
     ray::{Hit, Hittable, Ray3},
     texture::{SolidTex, Texture},
     utils::Interval,
@@ -24,7 +24,7 @@ impl<T: Texture> Sphere<Lambertian<T>> {
         let mat = Lambertian { tex };
         Self {
             radius,
-            center: Ray3::without_time(center.clone(), Vec3::zero()),
+            center: Ray3::without_time(center, Vec3::zero()),
             mat,
             bbox: Sphere::<Lambertian<T>>::aabb(&center, radius),
             naz_rot: 0.0,
@@ -37,6 +37,18 @@ impl<T: Texture> Sphere<Lambertian<T>> {
 
     pub fn rotate_texture(&mut self, rad: f64) {
         self.naz_rot = (rad / (2.0 * PI)) % 1.0;
+    }
+}
+
+impl<T: Texture> Sphere<Emitter<T>> {
+    pub fn emitter(radius: f64, center: Point, tex: T) -> Self {
+        Self {
+            radius,
+            center: Ray3::without_time(center, Vec3::zero()),
+            mat: Emitter { tex },
+            bbox: Self::aabb(&center, radius),
+            naz_rot: 0.0,
+        }
     }
 }
 

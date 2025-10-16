@@ -2,7 +2,7 @@ use crate::{
     image::Image,
     ray::{Hittable, Ray3},
     utils::{lerp, Interval},
-    vec::{Pixel, Point, Vec3},
+    vec::{Color, Pixel, Point, Vec3},
 };
 use core::f64;
 use rand::{rngs::ThreadRng, Rng};
@@ -46,6 +46,7 @@ pub struct CameraIntrinsics {
     pub vfov: f64,
     pub defoucs_angle: f64,
     pub focus_distance: f64,
+    pub background: Color,
 }
 
 impl Default for CameraIntrinsics {
@@ -58,6 +59,7 @@ impl Default for CameraIntrinsics {
             vfov: 90.0,
             defoucs_angle: 0.0,
             focus_distance: 1.0,
+            background: (108, 166, 193).into(),
         }
     }
 }
@@ -75,6 +77,7 @@ pub struct Camera<R: Rng> {
     rays_per_pixel: u32,
     max_bounces: u32,
     pose: CameraPose,
+    background: Color,
     rng: RefCell<R>,
 }
 
@@ -132,6 +135,7 @@ impl<R: Rng> Camera<R> {
             rays_per_pixel: intrinsics.rays_per_pixel,
             max_bounces: intrinsics.max_bounces,
             pose,
+            background: intrinsics.background,
             rng: RefCell::new(rng),
         }
     }
@@ -174,11 +178,7 @@ impl<R: Rng> Camera<R> {
         rng: &mut R,
     ) -> Pixel {
         if bounces_left <= 0 {
-            return Pixel {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            };
+            return Pixel::zero();
         }
 
         let mut t_range = Interval {
@@ -187,27 +187,29 @@ impl<R: Rng> Camera<R> {
         };
 
         if let Some(hit) = world.hit(&ray, &mut t_range) {
+            // if we hit an emissive material we won't scatter and we will directly return the
+            // emissive color up the stack
+            let emission_color = hit.mat.emitted(hit.uv, &hit.p);
+
             if let Some(scatter) = hit.mat.scatter(ray, &hit, rng) {
                 return &self.color_ray(
                     &Ray3::with_time(hit.p, scatter.scattered_ray.dir, scatter.scattered_ray.time),
-                    world.clone(),
+                    world,
                     bounces_left - 1,
                     rng,
                 ) * &scatter.attenuation;
             } else {
-                return Pixel::zero();
+                return Pixel {
+                    x: Image::map_to_rgb_space(emission_color.x),
+                    y: Image::map_to_rgb_space(emission_color.y),
+                    z: Image::map_to_rgb_space(emission_color.z),
+                };
             }
         } else {
-            let interpolant = 0.5 * (ray.dir.y + 1.0);
-
-            let r = lerp(1.0, 0.5, interpolant);
-            let g = lerp(1.0, 0.7, interpolant);
-            let b = 1.0;
-
             return Pixel {
-                x: Image::map_to_rgb_space(r),
-                y: Image::map_to_rgb_space(g),
-                z: Image::map_to_rgb_space(b),
+                x: Image::map_to_rgb_space(self.background.x),
+                y: Image::map_to_rgb_space(self.background.y),
+                z: Image::map_to_rgb_space(self.background.z),
             };
         }
     }

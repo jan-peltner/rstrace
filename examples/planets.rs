@@ -12,8 +12,13 @@ use rstrace::vec::*;
 fn main() {
     // --- Camera ---
     let mut intrinsics = CameraIntrinsics::default();
-    intrinsics.max_bounces = 50;
-    intrinsics.rays_per_pixel = 100;
+    intrinsics.max_bounces = 100;
+    intrinsics.rays_per_pixel = 10000;
+    intrinsics.background = Color {
+        x: 0.00,
+        y: 0.00,
+        z: 0.00,
+    };
 
     let pose = CameraPose::default();
     let camera = Camera::<ThreadRng>::with_default_rng(intrinsics, pose);
@@ -22,7 +27,7 @@ fn main() {
     let earth = Rc::from(Sphere::lambertian_with_texture(
         0.5,
         Point {
-            x: -1.0,
+            x: -1.5,
             y: 0.0,
             z: -2.0,
         },
@@ -30,7 +35,7 @@ fn main() {
     ));
 
     let mars = Rc::from(Sphere::lambertian_with_texture(
-        0.5 * 0.53,
+        0.5,
         Point {
             x: 0.0,
             y: 0.0,
@@ -40,16 +45,27 @@ fn main() {
     ));
 
     let moon = Rc::from(Sphere::lambertian_with_texture(
-        0.5 * 0.27,
+        0.5,
         Point {
-            x: 1.0,
+            x: 1.5,
             y: 0.0,
             z: -2.0,
         },
         ImageTex::new("assets/textures/moon.jpg").unwrap(),
     ));
 
-    let mut world_sphere = Sphere::lambertian_with_texture(
+    let light = Rc::from(Sphere::emitter(
+        0.75,
+        Point {
+            x: 0.0,
+            y: 1.75,
+            z: -1.25,
+        },
+        // ImageTex::new("assets/textures/light.avif").unwrap(),
+        SolidTex::white(),
+    ));
+
+    let world_sphere = Sphere::lambertian_with_texture(
         100.0,
         Point {
             x: 0.0,
@@ -58,10 +74,9 @@ fn main() {
         },
         SolidTex::new((88, 91, 112).into()),
     );
-    world_sphere.rotate_texture(2.0 * PI);
     let world_sphere = Rc::from(world_sphere);
 
-    let mut world = Hittables::from_vec(vec![mars, world_sphere, earth, moon]);
+    let mut world = Hittables::from_vec(vec![mars, world_sphere, earth, moon, light]);
     let world_root = BvhNode::from_hittables(&mut world.objects, &mut rand::rng());
 
     // --- Render ---
