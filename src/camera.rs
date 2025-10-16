@@ -1,7 +1,7 @@
 use crate::{
     image::Image,
     ray::{Hittable, Ray3},
-    utils::{lerp, Interval},
+    utils::Interval,
     vec::{Color, Pixel, Point, Vec3},
 };
 use core::f64;
