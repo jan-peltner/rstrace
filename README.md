@@ -1,5 +1,6 @@
 A Rust implementation of [Ray Tracing in One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html).
 
+![Planets](render/planets.png)
 ![Book One Final Scene](render/final.png)
 ![Procedural Textures](render/proc_tex.png)
 # Examples
