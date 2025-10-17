@@ -17,7 +17,7 @@ fn main() {
 
     // --- World ---
     let central_sphere = Rc::from(
-        Sphere::lambertian(
+        Sphere::lambertian_with_default_albedo(
             0.5,
             Point {
                 x: 0.0,
@@ -32,7 +32,7 @@ fn main() {
         }),
     );
 
-    let world_sphere = Rc::from(Sphere::lambertian(
+    let world_sphere = Rc::from(Sphere::lambertian_with_default_albedo(
         100.0,
         Point {
             x: 0.0,

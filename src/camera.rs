@@ -189,7 +189,7 @@ impl<R: Rng> Camera<R> {
         if let Some(hit) = world.hit(&ray, &mut t_range) {
             // if we hit an emissive material we won't scatter and we will directly return the
             // emissive color up the stack
-            let emission_color = hit.mat.emitted(hit.uv, &hit.p);
+            let emission_color = hit.mat.emit(hit.uv, &hit.p);
 
             if let Some(scatter) = hit.mat.scatter(ray, &hit, rng) {
                 return &self.color_ray(

@@ -9,7 +9,7 @@ use crate::{
 
 pub trait Material: Debug {
     fn scatter(&self, incident_ray: &Ray3, hit: &Hit, rng: &mut dyn RngCore) -> Option<Scatter>;
-    fn emitted(&self, _uv: (f64, f64), _p: &Point) -> Color {
+    fn emit(&self, _uv: (f64, f64), _p: &Point) -> Color {
         Color::zero()
     }
 }
@@ -35,15 +35,15 @@ impl<T: Texture> Material for Lambertian<T> {
 }
 
 #[derive(Debug)]
-pub struct Metal {
-    pub albedo: Color,
+pub struct Metal<T: Texture> {
+    pub tex: T,
     pub fuzz: f64,
 }
 
-impl Material for Metal {
+impl<T: Texture> Material for Metal<T> {
     fn scatter(&self, incident_ray: &Ray3, hit: &Hit, rng: &mut dyn RngCore) -> Option<Scatter> {
         Some(Scatter {
-            attenuation: self.albedo.clone(),
+            attenuation: self.tex.value(hit.uv, &hit.p),
             scattered_ray: Ray3::with_time(
                 hit.p.clone(),
                 incident_ray.dir.norm().reflect(&hit.normal)
@@ -114,7 +114,7 @@ impl<T: Texture> Material for Emitter<T> {
     fn scatter(&self, _incident_ray: &Ray3, _hit: &Hit, _rng: &mut dyn RngCore) -> Option<Scatter> {
         None
     }
-    fn emitted(&self, uv: (f64, f64), p: &Point) -> Color {
+    fn emit(&self, uv: (f64, f64), p: &Point) -> Color {
         self.tex.value(uv, p)
     }
 }
