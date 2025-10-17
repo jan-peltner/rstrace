@@ -1,7 +1,6 @@
 use std::rc::Rc;
 use std::time::Instant;
 
-use rand::rngs::ThreadRng;
 use rand::{random, Rng};
 use rstrace::bvh::BvhNode;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
@@ -31,7 +30,7 @@ fn main() {
         },
     };
 
-    let camera = Camera::<ThreadRng>::new(intrinsics, pose, rand::rng());
+    let camera = Camera::new(intrinsics, pose, rand::rng());
     let mut rng = rand::rng();
 
     // --- World ---

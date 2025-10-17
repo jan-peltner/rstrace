@@ -140,14 +140,6 @@ impl<R: Rng> Camera<R> {
         }
     }
 
-    pub fn with_default_rng(intrinsics: CameraIntrinsics, pose: CameraPose) -> Camera<ThreadRng> {
-        Camera::new(intrinsics, pose, rand::rng())
-    }
-
-    pub fn with_default_rng_and_pose(intrinsics: CameraIntrinsics) -> Camera<ThreadRng> {
-        Camera::<ThreadRng>::with_default_rng(intrinsics, CameraPose::default())
-    }
-
     pub fn render(&self, world: Rc<dyn Hittable>, path: impl AsRef<Path>) -> std::io::Result<()> {
         println!("Rendering image @ {}x{}...", self.img_w, self.img_h);
 
@@ -249,5 +241,15 @@ impl<R: Rng> Camera<R> {
 impl Default for Camera<ThreadRng> {
     fn default() -> Self {
         Self::with_default_rng_and_pose(CameraIntrinsics::default())
+    }
+}
+
+impl Camera<ThreadRng> {
+    pub fn with_default_rng(intrinsics: CameraIntrinsics, pose: CameraPose) -> Self {
+        Self::new(intrinsics, pose, rand::rng())
+    }
+
+    pub fn with_default_rng_and_pose(intrinsics: CameraIntrinsics) -> Self {
+        Self::with_default_rng(intrinsics, CameraPose::default())
     }
 }

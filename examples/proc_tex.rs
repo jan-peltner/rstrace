@@ -1,6 +1,5 @@
 use std::rc::Rc;
 
-use rand::rngs::ThreadRng;
 use rstrace::bvh::BvhNode;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::Sphere;
@@ -15,7 +14,7 @@ fn main() {
     intrinsics.rays_per_pixel = 100;
 
     let pose = CameraPose::default();
-    let camera = Camera::<ThreadRng>::with_default_rng(intrinsics, pose);
+    let camera = Camera::with_default_rng(intrinsics, pose);
 
     // --- World ---
     let central_sphere = Rc::from(Sphere::lambertian_with_texture(

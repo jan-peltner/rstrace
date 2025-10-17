@@ -1,6 +1,5 @@
 use std::rc::Rc;
 
-use rand::rngs::ThreadRng;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::Sphere;
 use rstrace::ray::Hittables;
@@ -25,7 +24,7 @@ fn main() {
             z: 0.0,
         },
     };
-    let camera = Camera::<ThreadRng>::with_default_rng(CameraIntrinsics::default(), pose);
+    let camera = Camera::with_default_rng(CameraIntrinsics::default(), pose);
 
     // --- World ---
     let world_sphere = Rc::from(Sphere::lambertian_with_albedo(
