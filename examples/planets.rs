@@ -11,7 +11,7 @@ fn main() {
     // --- Camera ---
     let mut intrinsics = CameraIntrinsics::default();
     intrinsics.max_bounces = 100;
-    intrinsics.rays_per_pixel = 10000;
+    intrinsics.rays_per_pixel = 1000;
     intrinsics.background = Color {
         x: 0.00,
         y: 0.00,
@@ -22,7 +22,7 @@ fn main() {
     let camera = Camera::with_default_rng(intrinsics, pose);
 
     // --- World ---
-    let earth = Rc::from(Sphere::lambertian_with_texture(
+    let earth = Rc::from(Sphere::metal_with_texture(
         0.5,
         Point {
             x: -1.5,
@@ -30,9 +30,10 @@ fn main() {
             z: -2.0,
         },
         ImageTex::new("assets/textures/earth.jpg").unwrap(),
+        1.0,
     ));
 
-    let mars = Rc::from(Sphere::lambertian_with_texture(
+    let mars = Rc::from(Sphere::metal_with_texture(
         0.5,
         Point {
             x: 0.0,
@@ -40,9 +41,10 @@ fn main() {
             z: -2.0,
         },
         ImageTex::new("assets/textures/mars.jpg").unwrap(),
+        1.0,
     ));
 
-    let moon = Rc::from(Sphere::lambertian_with_texture(
+    let moon = Rc::from(Sphere::metal_with_texture(
         0.5,
         Point {
             x: 1.5,
@@ -50,6 +52,7 @@ fn main() {
             z: -2.0,
         },
         ImageTex::new("assets/textures/moon.jpg").unwrap(),
+        1.0,
     ));
 
     let light = Rc::from(Sphere::emitter(
@@ -60,7 +63,11 @@ fn main() {
             z: -1.25,
         },
         // ImageTex::new("assets/textures/light.avif").unwrap(),
-        SolidTex::white(),
+        SolidTex::new(Color {
+            x: 4.0,
+            y: 4.0,
+            z: 4.0,
+        }),
     ));
 
     let world_sphere = Sphere::lambertian_with_texture(
