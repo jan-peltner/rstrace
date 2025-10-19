@@ -1,6 +1,6 @@
 use crate::{
     aabb::AABB,
-    material::{Lambertian, Material},
+    material::{Emitter, Lambertian, Material},
     ray::{Hit, Hittable, Ray3},
     texture::{SolidTex, Texture},
     utils::Interval,
@@ -13,32 +13,61 @@ pub struct Quad<M: Material> {
     v: Vec3,
     u: Vec3,
     n: Vec3,
+    w: Vec3,
     d: f64,
     mat: M,
     bbox: AABB,
 }
 
-impl<T: Texture> Quad<Lambertian<T>> {
-    fn new_lambertian(q: Point, v: Vec3, u: Vec3, tex: T) -> Self {
+impl<M: Material> Quad<M> {
+    fn new(q: Point, v: Vec3, u: Vec3, mat: M) -> Self {
         // normal vector to the quad containing 2d plane -> defines our plane
         let n = u.cross(&v).norm();
         // constant D for the 2d plane equation
         let d = n.dot(&q);
+        // cache w for computing the planar coordinates
+        let w = n / n.dot(&n);
         Self {
             q,
             v,
             u,
             n,
+            w,
             d,
-            mat: Lambertian { tex },
+            mat,
             bbox: Self::aabb(q, v, u),
         }
     }
 }
 
+impl<T: Texture> Quad<Lambertian<T>> {
+    pub fn lambertian_with_texture(q: Point, v: Vec3, u: Vec3, tex: T) -> Self {
+        Self::new(q, v, u, Lambertian { tex })
+    }
+}
+
 impl Quad<Lambertian<SolidTex>> {
     pub fn lambertian_with_albedo(q: Point, v: Vec3, u: Vec3, albedo: Color) -> Self {
-        Self::new_lambertian(q, v, u, SolidTex::new(albedo))
+        Self::lambertian_with_texture(q, v, u, SolidTex::new(albedo))
+    }
+}
+
+impl<T: Texture> Quad<Emitter<T>> {
+    pub fn emitter_with_texture(q: Point, v: Vec3, u: Vec3, tex: T) -> Self {
+        Self::new(q, v, u, Emitter { tex })
+    }
+}
+
+impl Quad<Emitter<SolidTex>> {
+    pub fn emitter_with_albedo(q: Point, v: Vec3, u: Vec3, albedo: Color) -> Self {
+        Self::new(
+            q,
+            v,
+            u,
+            Emitter {
+                tex: SolidTex::new(albedo),
+            },
+        )
     }
 }
 
@@ -64,15 +93,26 @@ impl<M: Material> Hittable for Quad<M> {
         if !t_range.contains(t) {
             return None;
         }
+        let p = ray.at(t);
+        // vector from quad origin Q to intersection point P
+        let qp = p - self.q;
+        let alpha = self.w.dot(&qp.cross(&self.v));
+        let beta = self.w.dot(&self.u.cross(&qp));
+
+        let unit_interval = Interval::unit();
+        if !unit_interval.contains(alpha) || !unit_interval.contains(beta) {
+            return None;
+        }
+
         let front_face = ray.dir.dot(&self.n) < 0.0;
 
         Some(Hit {
             t,
-            p: ray.at(t),
+            p,
             mat: &self.mat,
             front_face,
             normal: if front_face { self.n } else { self.n * -1.0 },
-            uv: (0.0, 0.0),
+            uv: (alpha, beta),
         })
     }
 

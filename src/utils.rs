@@ -17,7 +17,11 @@ pub struct Interval {
 
 impl Interval {
     pub fn empty() -> Self {
-        Interval { min: 0.0, max: 0.0 }
+        Self { min: 0.0, max: 0.0 }
+    }
+
+    pub fn unit() -> Self {
+        Self { min: 0.0, max: 1.0 }
     }
 
     pub fn expand(mut self, delta: f64) -> Self {
@@ -29,7 +33,7 @@ impl Interval {
     }
 
     pub fn from_intervals(a: &Interval, b: &Interval) -> Self {
-        Interval {
+        Self {
             min: a.min.min(b.min),
             max: a.max.max(b.max),
         }
