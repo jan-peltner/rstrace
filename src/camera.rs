@@ -1,7 +1,7 @@
 use crate::{
     image::Image,
     ray::{Hittable, Ray3},
-    utils::Interval,
+    utils::{linear_to_gamma, Interval},
     vec::{Color, Pixel, Point, Vec3},
 };
 use core::f64;
@@ -192,16 +192,16 @@ impl<R: Rng> Camera<R> {
                 ) * &scatter.attenuation;
             } else {
                 return Pixel {
-                    x: Image::map_to_rgb_space(emission_color.x),
-                    y: Image::map_to_rgb_space(emission_color.y),
-                    z: Image::map_to_rgb_space(emission_color.z),
+                    x: Image::map_to_rgb_space(linear_to_gamma(emission_color.x)),
+                    y: Image::map_to_rgb_space(linear_to_gamma(emission_color.y)),
+                    z: Image::map_to_rgb_space(linear_to_gamma(emission_color.z)),
                 };
             }
         } else {
             return Pixel {
-                x: Image::map_to_rgb_space(self.background.x),
-                y: Image::map_to_rgb_space(self.background.y),
-                z: Image::map_to_rgb_space(self.background.z),
+                x: Image::map_to_rgb_space(linear_to_gamma(self.background.x)),
+                y: Image::map_to_rgb_space(linear_to_gamma(self.background.y)),
+                z: Image::map_to_rgb_space(linear_to_gamma(self.background.z)),
             };
         }
     }
