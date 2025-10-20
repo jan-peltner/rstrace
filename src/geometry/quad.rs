@@ -22,16 +22,17 @@ pub struct Quad<M: Material> {
 impl<M: Material> Quad<M> {
     fn new(q: Point, v: Vec3, u: Vec3, mat: M) -> Self {
         // normal vector to the quad containing 2d plane -> defines our plane
-        let n = u.cross(&v).norm();
+        let n = u.cross(&v);
+        let n_norm = n.norm();
         // constant D for the 2d plane equation
-        let d = n.dot(&q);
+        let d = n_norm.dot(&q);
         // cache w for computing the planar coordinates
         let w = n / n.dot(&n);
         Self {
             q,
             v,
             u,
-            n,
+            n: n_norm,
             w,
             d,
             mat,
@@ -100,6 +101,7 @@ impl<M: Material> Hittable for Quad<M> {
         let beta = self.w.dot(&self.u.cross(&qp));
 
         let unit_interval = Interval::unit();
+        // check if hit occurs outside the quadrilateral
         if !unit_interval.contains(alpha) || !unit_interval.contains(beta) {
             return None;
         }
