@@ -12,7 +12,7 @@ fn main() {
     intrinsics.ar = 1.0;
     intrinsics.img_w = 600;
     intrinsics.rays_per_pixel = 200;
-    intrinsics.max_bounces = 100;
+    intrinsics.max_bounces = 40;
     intrinsics.vfov = 40.0;
     intrinsics.background = Color::zero();
 
@@ -46,9 +46,9 @@ fn main() {
         z: 0.73,
     };
     let light = Color {
-        x: 30.0,
-        y: 30.0,
-        z: 30.0,
+        x: 15.0,
+        y: 15.0,
+        z: 15.0,
     };
 
     let right_quad = Rc::from(Quad::lambertian_with_albedo(

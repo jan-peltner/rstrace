@@ -152,7 +152,13 @@ impl<R: Rng> Camera<R> {
                 px = px + self.color_ray(&ray, world.clone(), self.max_bounces, rng);
             }
 
-            px / self.rays_per_pixel as f64
+            px = px / self.rays_per_pixel as f64;
+
+            px.x = Image::map_to_rgb_space(linear_to_gamma(px.x));
+            px.y = Image::map_to_rgb_space(linear_to_gamma(px.y));
+            px.z = Image::map_to_rgb_space(linear_to_gamma(px.z));
+
+            px
         });
 
         let file = File::create(path)?;
@@ -192,16 +198,16 @@ impl<R: Rng> Camera<R> {
                 ) * &scatter.attenuation;
             } else {
                 return Pixel {
-                    x: Image::map_to_rgb_space(linear_to_gamma(emission_color.x)),
-                    y: Image::map_to_rgb_space(linear_to_gamma(emission_color.y)),
-                    z: Image::map_to_rgb_space(linear_to_gamma(emission_color.z)),
+                    x: emission_color.x,
+                    y: emission_color.y,
+                    z: emission_color.z,
                 };
             }
         } else {
             return Pixel {
-                x: Image::map_to_rgb_space(linear_to_gamma(self.background.x)),
-                y: Image::map_to_rgb_space(linear_to_gamma(self.background.y)),
-                z: Image::map_to_rgb_space(linear_to_gamma(self.background.z)),
+                x: self.background.x,
+                y: self.background.y,
+                z: self.background.z,
             };
         }
     }

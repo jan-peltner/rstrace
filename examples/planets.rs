@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use rstrace::bvh::BvhNode;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
-use rstrace::geometry::Sphere;
+use rstrace::geometry::{Quad, Sphere};
 use rstrace::ray::Hittables;
 use rstrace::texture::{ImageTex, SolidTex};
 use rstrace::vec::*;
@@ -10,12 +10,12 @@ use rstrace::vec::*;
 fn main() {
     // --- Camera ---
     let mut intrinsics = CameraIntrinsics::default();
-    intrinsics.max_bounces = 100;
+    intrinsics.max_bounces = 50;
     intrinsics.rays_per_pixel = 1000;
     intrinsics.background = Color {
-        x: 0.00,
-        y: 0.00,
-        z: 0.00,
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
     };
 
     let pose = CameraPose::default();
@@ -55,19 +55,23 @@ fn main() {
         1.0,
     ));
 
-    let light = Rc::from(Sphere::emitter(
-        0.75,
+    let light = Rc::from(Quad::emitter_with_texture(
         Point {
-            x: 0.0,
-            y: 1.75,
-            z: -1.25,
+            x: -2.0,
+            y: 1.5,
+            z: -2.5,
         },
-        // ImageTex::new("assets/textures/light.avif").unwrap(),
-        SolidTex::new(Color {
+        Vec3 {
+            x: 0.0,
+            y: 0.5,
+            z: 0.5,
+        },
+        Vec3 {
             x: 4.0,
-            y: 4.0,
-            z: 4.0,
-        }),
+            y: 0.0,
+            z: 0.0,
+        },
+        ImageTex::new("assets/textures/light.jpg").unwrap(),
     ));
 
     let world_sphere = Sphere::lambertian_with_texture(
