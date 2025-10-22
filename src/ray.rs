@@ -63,10 +63,11 @@ impl Hittables {
     }
 
     pub fn from_vec(objects: Vec<Rc<dyn Hittable>>) -> Self {
-        Self {
-            objects,
-            bbox: AABB::empty(),
+        let mut bbox = AABB::empty();
+        for obj in objects.iter() {
+            bbox = AABB::from_bboxes(&bbox, &obj.bbox());
         }
+        Self { objects, bbox }
     }
 
     pub fn add(&mut self, obj: Rc<dyn Hittable>) {
