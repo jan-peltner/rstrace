@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use rstrace::bvh::BvhNode;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::Quad;
@@ -51,7 +49,7 @@ fn main() {
         z: 15.0,
     };
 
-    let right_quad = Rc::from(Quad::lambertian_with_albedo(
+    let right_quad = Quad::lambertian_with_albedo(
         Point {
             x: 555.0,
             y: 0.0,
@@ -68,9 +66,9 @@ fn main() {
             z: 555.0,
         },
         green,
-    ));
+    );
 
-    let left_quad = Rc::from(Quad::lambertian_with_albedo(
+    let left_quad = Quad::lambertian_with_albedo(
         Point {
             x: 0.0,
             y: 0.0,
@@ -87,9 +85,9 @@ fn main() {
             z: 555.0,
         },
         red,
-    ));
+    );
 
-    let light_quad = Rc::from(Quad::emitter_with_albedo(
+    let light_quad = Quad::emitter_with_albedo(
         Point {
             x: 343.0,
             y: 554.0,
@@ -106,9 +104,9 @@ fn main() {
             z: -105.0,
         },
         light,
-    ));
+    );
 
-    let floor_quad = Rc::from(Quad::lambertian_with_albedo(
+    let floor_quad = Quad::lambertian_with_albedo(
         Point {
             x: 0.0,
             y: 0.0,
@@ -125,9 +123,9 @@ fn main() {
             z: 555.0,
         },
         white,
-    ));
+    );
 
-    let ceiling_quad = Rc::from(Quad::lambertian_with_albedo(
+    let ceiling_quad = Quad::lambertian_with_albedo(
         Point {
             x: 555.0,
             y: 555.0,
@@ -144,9 +142,9 @@ fn main() {
             z: -555.0,
         },
         white,
-    ));
+    );
 
-    let back_wall_quad = Rc::from(Quad::lambertian_with_albedo(
+    let back_wall_quad = Quad::lambertian_with_albedo(
         Point {
             x: 0.0,
             y: 0.0,
@@ -163,7 +161,7 @@ fn main() {
             z: 0.0,
         },
         white,
-    ));
+    );
 
     let mut world = Hittables::from_vec(vec![
         right_quad,

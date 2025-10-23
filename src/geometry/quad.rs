@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{
     aabb::AABB,
     material::{Emitter, Lambertian, Material},
@@ -20,7 +22,7 @@ pub struct Quad<M: Material> {
 }
 
 impl<M: Material> Quad<M> {
-    fn new(q: Point, v: Vec3, u: Vec3, mat: M) -> Self {
+    fn new(q: Point, v: Vec3, u: Vec3, mat: M) -> Rc<Self> {
         // normal vector to the quad containing 2d plane -> defines our plane
         let n = u.cross(&v);
         let n_norm = n.norm();
@@ -28,7 +30,7 @@ impl<M: Material> Quad<M> {
         let d = n_norm.dot(&q);
         // cache w for computing the planar coordinates
         let w = n / n.dot(&n);
-        Self {
+        Rc::from(Self {
             q,
             v,
             u,
@@ -37,30 +39,29 @@ impl<M: Material> Quad<M> {
             d,
             mat,
             bbox: Self::aabb(q, v, u),
-        }
+        })
     }
 }
 
 impl<T: Texture> Quad<Lambertian<T>> {
-    pub fn lambertian_with_texture(q: Point, v: Vec3, u: Vec3, tex: T) -> Self {
+    pub fn lambertian_with_texture(q: Point, v: Vec3, u: Vec3, tex: T) -> Rc<Self> {
         Self::new(q, v, u, Lambertian { tex })
     }
 }
-
 impl Quad<Lambertian<SolidTex>> {
-    pub fn lambertian_with_albedo(q: Point, v: Vec3, u: Vec3, albedo: Color) -> Self {
+    pub fn lambertian_with_albedo(q: Point, v: Vec3, u: Vec3, albedo: Color) -> Rc<Self> {
         Self::lambertian_with_texture(q, v, u, SolidTex::new(albedo))
     }
 }
 
 impl<T: Texture> Quad<Emitter<T>> {
-    pub fn emitter_with_texture(q: Point, v: Vec3, u: Vec3, tex: T) -> Self {
+    pub fn emitter_with_texture(q: Point, v: Vec3, u: Vec3, tex: T) -> Rc<Self> {
         Self::new(q, v, u, Emitter { tex })
     }
 }
 
 impl Quad<Emitter<SolidTex>> {
-    pub fn emitter_with_albedo(q: Point, v: Vec3, u: Vec3, albedo: Color) -> Self {
+    pub fn emitter_with_albedo(q: Point, v: Vec3, u: Vec3, albedo: Color) -> Rc<Self> {
         Self::new(
             q,
             v,

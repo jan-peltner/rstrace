@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use rstrace::bvh::BvhNode;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::{Quad, Sphere};
@@ -11,7 +9,7 @@ fn main() {
     // --- Camera ---
     let mut intrinsics = CameraIntrinsics::default();
     intrinsics.max_bounces = 50;
-    intrinsics.rays_per_pixel = 1000;
+    intrinsics.rays_per_pixel = 200;
     intrinsics.background = Color {
         x: 0.0,
         y: 0.0,
@@ -22,7 +20,7 @@ fn main() {
     let camera = Camera::with_default_rng(intrinsics, pose);
 
     // --- World ---
-    let earth = Rc::from(Sphere::metal_with_texture(
+    let earth = Sphere::metal_with_texture(
         0.5,
         Point {
             x: -1.5,
@@ -31,9 +29,9 @@ fn main() {
         },
         ImageTex::new("assets/textures/earth.jpg").unwrap(),
         1.0,
-    ));
+    );
 
-    let mars = Rc::from(Sphere::metal_with_texture(
+    let mars = Sphere::metal_with_texture(
         0.5,
         Point {
             x: 0.0,
@@ -42,9 +40,9 @@ fn main() {
         },
         ImageTex::new("assets/textures/mars.jpg").unwrap(),
         1.0,
-    ));
+    );
 
-    let moon = Rc::from(Sphere::metal_with_texture(
+    let moon = Sphere::metal_with_texture(
         0.5,
         Point {
             x: 1.5,
@@ -53,9 +51,9 @@ fn main() {
         },
         ImageTex::new("assets/textures/moon.jpg").unwrap(),
         1.0,
-    ));
+    );
 
-    let light = Rc::from(Quad::emitter_with_texture(
+    let light = Quad::emitter_with_texture(
         Point {
             x: -2.0,
             y: 1.5,
@@ -72,7 +70,7 @@ fn main() {
             z: 0.0,
         },
         ImageTex::new("assets/textures/light.jpg").unwrap(),
-    ));
+    );
 
     let world_sphere = Sphere::lambertian_with_texture(
         100.0,
@@ -83,7 +81,7 @@ fn main() {
         },
         SolidTex::new((88, 91, 112).into()),
     );
-    let world_sphere = Rc::from(world_sphere);
+    let world_sphere = world_sphere;
 
     let mut world = Hittables::from_vec(vec![mars, world_sphere, earth, moon, light]);
     let world_root = BvhNode::from_hittables(&mut world.objects, &mut rand::rng());

@@ -1,4 +1,5 @@
 use core::f64::{self, consts::PI};
+use std::rc::Rc;
 
 use crate::{
     aabb::AABB,
@@ -20,15 +21,15 @@ pub struct Sphere<M: Material> {
 }
 
 impl<T: Texture> Sphere<Lambertian<T>> {
-    pub fn lambertian_with_texture(radius: f64, center: Point, tex: T) -> Self {
+    pub fn lambertian_with_texture(radius: f64, center: Point, tex: T) -> Rc<Self> {
         let mat = Lambertian { tex };
-        Self {
+        Rc::from(Self {
             radius,
             center: Ray3::without_time(center, Vec3::zero()),
             mat,
             bbox: Sphere::<Lambertian<T>>::aabb(&center, radius),
             naz_rot: 0.0,
-        }
+        })
     }
 
     pub fn rotate_texture(&mut self, rad: f64) {
@@ -37,11 +38,11 @@ impl<T: Texture> Sphere<Lambertian<T>> {
 }
 
 impl Sphere<Lambertian<SolidTex>> {
-    pub fn lambertian_with_albedo(radius: f64, center: Point, albedo: Color) -> Self {
+    pub fn lambertian_with_albedo(radius: f64, center: Point, albedo: Color) -> Rc<Self> {
         Self::lambertian_with_texture(radius, center, SolidTex::new(albedo))
     }
 
-    pub fn lambertian_with_default_albedo(radius: f64, center: Point) -> Self {
+    pub fn lambertian_with_default_albedo(radius: f64, center: Point) -> Rc<Self> {
         Self::lambertian_with_texture(
             radius,
             center,
@@ -55,15 +56,15 @@ impl Sphere<Lambertian<SolidTex>> {
 }
 
 impl<T: Texture> Sphere<Metal<T>> {
-    pub fn metal_with_texture(radius: f64, center: Point, tex: T, fuzz: f64) -> Self {
+    pub fn metal_with_texture(radius: f64, center: Point, tex: T, fuzz: f64) -> Rc<Self> {
         let mat = Metal { tex, fuzz };
-        Self {
+        Rc::from(Self {
             radius,
             center: Ray3::without_time(center.clone(), Vec3::zero()),
             mat,
             bbox: Self::aabb(&center, radius),
             naz_rot: 0.0,
-        }
+        })
     }
 
     pub fn rotate_texture(&mut self, rad: f64) {
@@ -72,11 +73,11 @@ impl<T: Texture> Sphere<Metal<T>> {
 }
 
 impl Sphere<Metal<SolidTex>> {
-    pub fn metal_with_albedo(radius: f64, center: Point, albedo: Color, fuzz: f64) -> Self {
+    pub fn metal_with_albedo(radius: f64, center: Point, albedo: Color, fuzz: f64) -> Rc<Self> {
         Self::metal_with_texture(radius, center, SolidTex::new(albedo), fuzz)
     }
 
-    pub fn metal_with_default_albedo(radius: f64, center: Point, fuzz: f64) -> Self {
+    pub fn metal_with_default_albedo(radius: f64, center: Point, fuzz: f64) -> Rc<Self> {
         Self::metal_with_texture(
             radius,
             center,
@@ -91,14 +92,14 @@ impl Sphere<Metal<SolidTex>> {
 }
 
 impl<T: Texture> Sphere<Emitter<T>> {
-    pub fn emitter(radius: f64, center: Point, tex: T) -> Self {
-        Self {
+    pub fn emitter(radius: f64, center: Point, tex: T) -> Rc<Self> {
+        Rc::from(Self {
             radius,
             center: Ray3::without_time(center, Vec3::zero()),
             mat: Emitter { tex },
             bbox: Self::aabb(&center, radius),
             naz_rot: 0.0,
-        }
+        })
     }
 
     pub fn rotate_texture(&mut self, rad: f64) {
@@ -107,18 +108,18 @@ impl<T: Texture> Sphere<Emitter<T>> {
 }
 
 impl Sphere<Dielectric> {
-    fn new_dielectric(radius: f64, center: Point, refractive_index: f64) -> Self {
+    fn new_dielectric(radius: f64, center: Point, refractive_index: f64) -> Rc<Self> {
         let mat = Dielectric { refractive_index };
-        Self {
+        Rc::from(Self {
             radius,
             center: Ray3::without_time(center.clone(), Vec3::zero()),
             mat,
             bbox: Self::aabb(&center, radius),
             naz_rot: 0.0,
-        }
+        })
     }
 
-    pub fn dielectric(radius: f64, center: Point, refractive_index: f64) -> Self {
+    pub fn dielectric(radius: f64, center: Point, refractive_index: f64) -> Rc<Self> {
         Self::new_dielectric(radius, center, refractive_index)
     }
 }
