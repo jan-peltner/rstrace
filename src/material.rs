@@ -1,5 +1,5 @@
 use rand::{Rng, RngCore};
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 use crate::{
     ray::{Hit, Ray3, Scatter},
@@ -14,9 +14,15 @@ pub trait Material: Debug {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Lambertian<T: Texture> {
-    pub tex: T,
+    tex: T,
+}
+
+impl<T: Texture> Lambertian<T> {
+    pub fn new(tex: T) -> Rc<Self> {
+        Rc::from(Self { tex })
+    }
 }
 
 impl<T: Texture> Material for Lambertian<T> {
@@ -34,10 +40,16 @@ impl<T: Texture> Material for Lambertian<T> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Metal<T: Texture> {
-    pub tex: T,
-    pub fuzz: f64,
+    tex: T,
+    fuzz: f64,
+}
+
+impl<T: Texture> Metal<T> {
+    pub fn new(tex: T, fuzz: f64) -> Rc<Self> {
+        Rc::from(Self { tex, fuzz })
+    }
 }
 
 impl<T: Texture> Material for Metal<T> {
@@ -54,9 +66,15 @@ impl<T: Texture> Material for Metal<T> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Dielectric {
-    pub refractive_index: f64,
+    refractive_index: f64,
+}
+
+impl Dielectric {
+    pub fn new(refractive_index: f64) -> Rc<Self> {
+        Rc::from(Self { refractive_index })
+    }
 }
 
 impl Dielectric {
@@ -105,9 +123,15 @@ impl Material for Dielectric {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Emitter<T: Texture> {
-    pub tex: T,
+    tex: T,
+}
+
+impl<T: Texture> Emitter<T> {
+    pub fn new(tex: T) -> Rc<Self> {
+        Rc::from(Self { tex })
+    }
 }
 
 impl<T: Texture> Material for Emitter<T> {

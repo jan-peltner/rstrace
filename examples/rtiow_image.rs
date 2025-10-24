@@ -2,7 +2,9 @@ use rand::{random, Rng};
 use rstrace::bvh::BvhNode;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::Sphere;
+use rstrace::material::{Dielectric, Lambertian, Metal};
 use rstrace::ray::Hittables;
+use rstrace::texture::SolidTex;
 use rstrace::vec::*;
 
 fn main() {
@@ -33,18 +35,19 @@ fn main() {
     // --- World ---
     let mut world = Hittables::new();
 
-    world.add(Sphere::lambertian_with_albedo(
+    let world_mat = Lambertian::new(SolidTex::new(Color {
+        x: 0.5,
+        y: 0.5,
+        z: 0.5,
+    }));
+    world.add(Sphere::new(
         1000.0,
         Point {
             x: 0.0,
             y: -1000.0,
             z: 0.0,
         },
-        Color {
-            x: 0.5,
-            y: 0.5,
-            z: 0.5,
-        },
+        world_mat,
     ));
 
     for i in -11..11 {
@@ -66,54 +69,59 @@ fn main() {
                 > 0.9
             {
                 if rand_mat_sample < 0.8 {
-                    let albedo = Color::rand(&mut rng);
-                    world.add(Sphere::lambertian_with_albedo(0.2, center, albedo));
+                    let mat = Lambertian::new(SolidTex::new(Color::rand(&mut rng)));
+                    world.add(Sphere::new(0.2, center, mat));
                 } else if rand_mat_sample < 0.95 {
-                    let albedo = Color::rand_range(&mut rng, 0.0, 0.5);
-                    let fuzz = rng.random_range(0.0..0.5);
-                    world.add(Sphere::metal_with_albedo(0.2, center, albedo, fuzz));
+                    let mat = Metal::new(
+                        SolidTex::new(Color::rand_range(&mut rng, 0.0, 0.5)),
+                        rng.random_range(0.0..0.5),
+                    );
+                    world.add(Sphere::new(0.2, center, mat));
                 } else {
-                    world.add(Sphere::dielectric(0.2, center, 1.5));
+                    let mat = Dielectric::new(1.5);
+                    world.add(Sphere::new(0.2, center, mat));
                 }
             }
         }
     }
 
-    world.add(Sphere::dielectric(
+    world.add(Sphere::new(
         1.0,
         Point {
             x: 0.0,
             y: 1.0,
             z: 0.0,
         },
-        1.9,
+        Dielectric::new(1.9),
     ));
-    world.add(Sphere::lambertian_with_albedo(
+    world.add(Sphere::new(
         1.0,
         Point {
             x: -4.0,
             y: 1.0,
             z: 0.0,
         },
-        Color {
+        Lambertian::new(SolidTex::new(Color {
             x: 0.4,
             y: 0.2,
             z: 0.1,
-        },
+        })),
     ));
-    world.add(Sphere::metal_with_albedo(
+    world.add(Sphere::new(
         1.0,
         Point {
             x: 4.0,
             y: 1.0,
             z: 0.0,
         },
-        Color {
-            x: 0.7,
-            y: 0.6,
-            z: 0.5,
-        },
-        0.0,
+        Metal::new(
+            SolidTex::new(Color {
+                x: 0.7,
+                y: 0.6,
+                z: 0.5,
+            }),
+            0.0,
+        ),
     ));
 
     let world_root = BvhNode::from_hittables(&mut world.objects, &mut rng);

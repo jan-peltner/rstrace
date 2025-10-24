@@ -34,17 +34,17 @@ impl Ray3 {
     }
 }
 
-pub struct Hit<'a> {
+pub struct Hit {
     pub p: Point,
     pub normal: Vec3,
     pub uv: (f64, f64),
     pub front_face: bool,
     pub t: f64,
-    pub mat: &'a dyn Material,
+    pub mat: Rc<dyn Material>,
 }
 
 pub trait Hittable: Debug {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit<'_>>;
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit>;
     fn bbox(&self) -> AABB;
 }
 
@@ -77,7 +77,7 @@ impl Hittables {
 }
 
 impl Hittable for Hittables {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit<'_>> {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
         let mut closest_hit: Option<Hit> = None;
 
         for hittable in self.objects.iter() {

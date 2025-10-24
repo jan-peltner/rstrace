@@ -3,128 +3,35 @@ use std::rc::Rc;
 
 use crate::{
     aabb::AABB,
-    material::{Dielectric, Emitter, Lambertian, Material, Metal},
+    material::Material,
     ray::{Hit, Hittable, Ray3},
-    texture::{SolidTex, Texture},
     utils::Interval,
-    vec::{Color, Point, Vec3},
+    vec::{Point, Vec3},
 };
 
 #[derive(Debug)]
-pub struct Sphere<M: Material> {
+pub struct Sphere {
     pub radius: f64,
     pub center: Ray3,
-    mat: M,
+    mat: Rc<dyn Material>,
     bbox: AABB,
     // normalized azimuthal rotation
     naz_rot: f64,
 }
 
-impl<T: Texture> Sphere<Lambertian<T>> {
-    pub fn lambertian_with_texture(radius: f64, center: Point, tex: T) -> Rc<Self> {
-        let mat = Lambertian { tex };
+impl Sphere {
+    pub fn rotate_texture(&mut self, rad: f64) {
+        self.naz_rot = (rad / (2.0 * PI)) % 1.0;
+    }
+    pub fn new(radius: f64, center: Point, mat: Rc<dyn Material>) -> Rc<Self> {
         Rc::from(Self {
             radius,
             center: Ray3::without_time(center, Vec3::zero()),
             mat,
-            bbox: Sphere::<Lambertian<T>>::aabb(&center, radius),
+            bbox: Sphere::aabb(&center, radius),
             naz_rot: 0.0,
         })
     }
-
-    pub fn rotate_texture(&mut self, rad: f64) {
-        self.naz_rot = (rad / (2.0 * PI)) % 1.0;
-    }
-}
-
-impl Sphere<Lambertian<SolidTex>> {
-    pub fn lambertian_with_albedo(radius: f64, center: Point, albedo: Color) -> Rc<Self> {
-        Self::lambertian_with_texture(radius, center, SolidTex::new(albedo))
-    }
-
-    pub fn lambertian_with_default_albedo(radius: f64, center: Point) -> Rc<Self> {
-        Self::lambertian_with_texture(
-            radius,
-            center,
-            SolidTex::new(Color {
-                x: 0.5,
-                y: 0.5,
-                z: 0.5,
-            }),
-        )
-    }
-}
-
-impl<T: Texture> Sphere<Metal<T>> {
-    pub fn metal_with_texture(radius: f64, center: Point, tex: T, fuzz: f64) -> Rc<Self> {
-        let mat = Metal { tex, fuzz };
-        Rc::from(Self {
-            radius,
-            center: Ray3::without_time(center.clone(), Vec3::zero()),
-            mat,
-            bbox: Self::aabb(&center, radius),
-            naz_rot: 0.0,
-        })
-    }
-
-    pub fn rotate_texture(&mut self, rad: f64) {
-        self.naz_rot = (rad / (2.0 * PI)) % 1.0;
-    }
-}
-
-impl Sphere<Metal<SolidTex>> {
-    pub fn metal_with_albedo(radius: f64, center: Point, albedo: Color, fuzz: f64) -> Rc<Self> {
-        Self::metal_with_texture(radius, center, SolidTex::new(albedo), fuzz)
-    }
-
-    pub fn metal_with_default_albedo(radius: f64, center: Point, fuzz: f64) -> Rc<Self> {
-        Self::metal_with_texture(
-            radius,
-            center,
-            SolidTex::new(Color {
-                x: 0.5,
-                y: 0.5,
-                z: 0.5,
-            }),
-            fuzz,
-        )
-    }
-}
-
-impl<T: Texture> Sphere<Emitter<T>> {
-    pub fn emitter(radius: f64, center: Point, tex: T) -> Rc<Self> {
-        Rc::from(Self {
-            radius,
-            center: Ray3::without_time(center, Vec3::zero()),
-            mat: Emitter { tex },
-            bbox: Self::aabb(&center, radius),
-            naz_rot: 0.0,
-        })
-    }
-
-    pub fn rotate_texture(&mut self, rad: f64) {
-        self.naz_rot = (rad / (2.0 * PI)) % 1.0;
-    }
-}
-
-impl Sphere<Dielectric> {
-    fn new_dielectric(radius: f64, center: Point, refractive_index: f64) -> Rc<Self> {
-        let mat = Dielectric { refractive_index };
-        Rc::from(Self {
-            radius,
-            center: Ray3::without_time(center.clone(), Vec3::zero()),
-            mat,
-            bbox: Self::aabb(&center, radius),
-            naz_rot: 0.0,
-        })
-    }
-
-    pub fn dielectric(radius: f64, center: Point, refractive_index: f64) -> Rc<Self> {
-        Self::new_dielectric(radius, center, refractive_index)
-    }
-}
-
-impl<M: Material> Sphere<M> {
     fn aabb(center: &Point, radius: f64) -> AABB {
         let radius_vec = Vec3::splat(radius);
         AABB::from_points(&(center - &radius_vec), &(center + &radius_vec))
@@ -165,8 +72,8 @@ impl<M: Material> Sphere<M> {
     }
 }
 
-impl<M: Material> Hittable for Sphere<M> {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit<'_>> {
+impl Hittable for Sphere {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
         let current_center = self.center.at(ray.time);
         let cq = &ray.origin - &current_center;
         let a = ray.dir.dot(&ray.dir);
@@ -213,7 +120,7 @@ impl<M: Material> Hittable for Sphere<M> {
                 outward_normal * -1.0
             },
             front_face,
-            mat: &self.mat,
+            mat: self.mat.clone(),
         });
     }
 

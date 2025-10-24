@@ -1,7 +1,9 @@
 use rstrace::bvh::BvhNode;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::Quad;
+use rstrace::material::{Emitter, Lambertian};
 use rstrace::ray::Hittables;
+use rstrace::texture::SolidTex;
 use rstrace::vec::*;
 
 fn main() {
@@ -28,28 +30,28 @@ fn main() {
 
     let camera = Camera::with_default_rng(intrinsics, pose);
 
-    let red = Color {
+    let red = Lambertian::new(SolidTex::new(Color {
         x: 0.65,
         y: 0.05,
         z: 0.05,
-    };
-    let green = Color {
+    }));
+    let green = Lambertian::new(SolidTex::new(Color {
         x: 0.12,
         y: 0.45,
         z: 0.15,
-    };
-    let white = Color {
+    }));
+    let white = Lambertian::new(SolidTex::new(Color {
         x: 0.73,
         y: 0.73,
         z: 0.73,
-    };
-    let light = Color {
+    }));
+    let light = Emitter::new(SolidTex::new(Color {
         x: 15.0,
         y: 15.0,
         z: 15.0,
-    };
+    }));
 
-    let right_quad = Quad::lambertian_with_albedo(
+    let right_quad = Quad::new(
         Point {
             x: 555.0,
             y: 0.0,
@@ -68,7 +70,7 @@ fn main() {
         green,
     );
 
-    let left_quad = Quad::lambertian_with_albedo(
+    let left_quad = Quad::new(
         Point {
             x: 0.0,
             y: 0.0,
@@ -87,7 +89,7 @@ fn main() {
         red,
     );
 
-    let light_quad = Quad::emitter_with_albedo(
+    let light_quad = Quad::new(
         Point {
             x: 343.0,
             y: 554.0,
@@ -106,7 +108,7 @@ fn main() {
         light,
     );
 
-    let floor_quad = Quad::lambertian_with_albedo(
+    let floor_quad = Quad::new(
         Point {
             x: 0.0,
             y: 0.0,
@@ -122,10 +124,10 @@ fn main() {
             y: 0.0,
             z: 555.0,
         },
-        white,
+        white.clone(),
     );
 
-    let ceiling_quad = Quad::lambertian_with_albedo(
+    let ceiling_quad = Quad::new(
         Point {
             x: 555.0,
             y: 555.0,
@@ -141,10 +143,10 @@ fn main() {
             y: 0.0,
             z: -555.0,
         },
-        white,
+        white.clone(),
     );
 
-    let back_wall_quad = Quad::lambertian_with_albedo(
+    let back_wall_quad = Quad::new(
         Point {
             x: 0.0,
             y: 0.0,
@@ -160,7 +162,7 @@ fn main() {
             y: 555.0,
             z: 0.0,
         },
-        white,
+        white.clone(),
     );
 
     let mut world = Hittables::from_vec(vec![

@@ -7,7 +7,7 @@ pub trait Texture: Debug {
     fn value(&self, uv: (f64, f64), p: &Point) -> Color;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SolidTex {
     albedo: Color,
 }
@@ -48,7 +48,7 @@ impl Texture for SolidTex {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CheckerTex {
     even: SolidTex,
     odd: SolidTex,
@@ -78,13 +78,13 @@ impl Texture for CheckerTex {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Orientation {
     Vertical,
     Horizontal,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StripeTex {
     even: SolidTex,
     odd: SolidTex,
@@ -117,7 +117,7 @@ impl Texture for StripeTex {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UVTex {
     pub color_u: SolidTex,
     pub color_v: SolidTex,
@@ -140,7 +140,7 @@ impl Texture for UVTex {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ImageTex {
     data: RgbImage,
 }
