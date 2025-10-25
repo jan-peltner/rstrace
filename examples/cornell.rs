@@ -165,6 +165,34 @@ fn main() {
         white.clone(),
     );
 
+    let front_box = Quad::spawn_box(
+        Point {
+            x: 130.0,
+            y: 0.0,
+            z: 65.0,
+        },
+        Point {
+            x: 295.0,
+            y: 165.0,
+            z: 230.0,
+        },
+        white.clone(),
+    );
+
+    let back_box = Quad::spawn_box(
+        Point {
+            x: 265.0,
+            y: 0.0,
+            z: 295.0,
+        },
+        Point {
+            x: 430.0,
+            y: 330.0,
+            z: 460.0,
+        },
+        white.clone(),
+    );
+
     let mut world = Hittables::from_vec(vec![
         right_quad,
         left_quad,
@@ -173,6 +201,9 @@ fn main() {
         ceiling_quad,
         back_wall_quad,
     ]);
+    world.extend(front_box);
+    world.extend(back_box);
+
     let world_root = BvhNode::from_hittables(&mut world.objects, &mut rand::rng());
 
     // --- Render ---

@@ -71,8 +71,17 @@ impl Hittables {
     }
 
     pub fn add(&mut self, obj: Rc<dyn Hittable>) {
-        self.bbox = AABB::from_bboxes(&self.bbox, &obj.bbox());
+        if self.objects.is_empty() {
+            self.bbox = obj.bbox();
+        } else {
+            self.bbox = AABB::from_bboxes(&self.bbox, &obj.bbox());
+        }
         self.objects.push(obj);
+    }
+
+    pub fn extend(&mut self, hittables: Hittables) {
+        self.bbox = AABB::from_bboxes(&self.bbox, &hittables.bbox());
+        self.objects.extend(hittables.objects);
     }
 }
 
