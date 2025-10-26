@@ -11,6 +11,7 @@ pub struct RotateY<H: Hittable> {
     object: H,
     cos_theta: f64,
     sin_theta: f64,
+    bbox: AABB,
 }
 
 impl<H: Hittable> Hittable for RotateY<H> {
@@ -19,7 +20,7 @@ impl<H: Hittable> Hittable for RotateY<H> {
     }
 
     fn bbox(&self) -> AABB {
-        todo!()
+        self.bbox
     }
 }
 
