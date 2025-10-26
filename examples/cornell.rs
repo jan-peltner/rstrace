@@ -11,8 +11,8 @@ fn main() {
     let mut intrinsics = CameraIntrinsics::default();
     intrinsics.ar = 1.0;
     intrinsics.img_w = 600;
-    intrinsics.rays_per_pixel = 200;
-    intrinsics.max_bounces = 40;
+    intrinsics.rays_per_pixel = 1000;
+    intrinsics.max_bounces = 50;
     intrinsics.vfov = 40.0;
     intrinsics.background = Color::zero();
 
@@ -51,7 +51,7 @@ fn main() {
         z: 15.0,
     }));
 
-    let right_quad = Quad::new(
+    let right_quad = Quad::new_rc(
         Point {
             x: 555.0,
             y: 0.0,
@@ -70,7 +70,7 @@ fn main() {
         green,
     );
 
-    let left_quad = Quad::new(
+    let left_quad = Quad::new_rc(
         Point {
             x: 0.0,
             y: 0.0,
@@ -89,7 +89,7 @@ fn main() {
         red,
     );
 
-    let light_quad = Quad::new(
+    let light_quad = Quad::new_rc(
         Point {
             x: 343.0,
             y: 554.0,
@@ -108,7 +108,7 @@ fn main() {
         light,
     );
 
-    let floor_quad = Quad::new(
+    let floor_quad = Quad::new_rc(
         Point {
             x: 0.0,
             y: 0.0,
@@ -127,7 +127,7 @@ fn main() {
         white.clone(),
     );
 
-    let ceiling_quad = Quad::new(
+    let ceiling_quad = Quad::new_rc(
         Point {
             x: 555.0,
             y: 555.0,
@@ -146,7 +146,7 @@ fn main() {
         white.clone(),
     );
 
-    let back_wall_quad = Quad::new(
+    let back_wall_quad = Quad::new_rc(
         Point {
             x: 0.0,
             y: 0.0,

@@ -21,7 +21,7 @@ pub struct Quad {
 }
 
 impl Quad {
-    pub fn new(q: Point, v: Vec3, u: Vec3, mat: Rc<dyn Material>) -> Rc<Self> {
+    pub fn new(q: Point, v: Vec3, u: Vec3, mat: Rc<dyn Material>) -> Self {
         // normal vector to the quad containing 2d plane -> defines our plane
         let n = u.cross(&v);
         let n_norm = n.norm();
@@ -29,7 +29,7 @@ impl Quad {
         let d = n_norm.dot(&q);
         // cache w for computing the planar coordinates
         let w = n / n.dot(&n);
-        Rc::from(Self {
+        Self {
             q,
             v,
             u,
@@ -38,7 +38,11 @@ impl Quad {
             d,
             mat,
             bbox: Self::aabb(q, v, u),
-        })
+        }
+    }
+
+    pub fn new_rc(q: Point, v: Vec3, u: Vec3, mat: Rc<dyn Material>) -> Rc<Self> {
+        Rc::from(Self::new(q, v, u, mat))
     }
 
     fn aabb(q: Point, v: Vec3, u: Vec3) -> AABB {
@@ -80,12 +84,12 @@ impl Quad {
             z: max.z - min.z,
         };
 
-        quads.add(Quad::new(min + dz, dy, dx, mat.clone())); // front face
-        quads.add(Quad::new(min + dz + dx, dy, dz, mat.clone())); // right face
-        quads.add(Quad::new(min, dy, dx, mat.clone())); // back face
-        quads.add(Quad::new(min, dy, dz, mat.clone())); // left face
-        quads.add(Quad::new(min + dy, dz, dx, mat.clone())); // top face
-        quads.add(Quad::new(min, dz, dx, mat.clone())); // bottom face
+        quads.add(Quad::new_rc(min + dz, dy, dx, mat.clone())); // front face
+        quads.add(Quad::new_rc(min + dz + dx, dy, dz, mat.clone())); // right face
+        quads.add(Quad::new_rc(min, dy, dx, mat.clone())); // back face
+        quads.add(Quad::new_rc(min, dy, dz, mat.clone())); // left face
+        quads.add(Quad::new_rc(min + dy, dz, dx, mat.clone())); // top face
+        quads.add(Quad::new_rc(min, dz, dx, mat.clone())); // bottom face
 
         quads
     }

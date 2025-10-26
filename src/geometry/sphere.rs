@@ -20,18 +20,24 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn rotate_texture(&mut self, rad: f64) {
-        self.naz_rot = (rad / (2.0 * PI)) % 1.0;
-    }
-    pub fn new(radius: f64, center: Point, mat: Rc<dyn Material>) -> Rc<Self> {
-        Rc::from(Self {
+    pub fn new(radius: f64, center: Point, mat: Rc<dyn Material>) -> Self {
+        Self {
             radius,
             center: Ray3::without_time(center, Vec3::zero()),
             mat,
             bbox: Sphere::aabb(&center, radius),
             naz_rot: 0.0,
-        })
+        }
     }
+
+    pub fn new_rc(radius: f64, center: Point, mat: Rc<dyn Material>) -> Rc<Self> {
+        Rc::from(Self::new(radius, center, mat))
+    }
+
+    pub fn rotate_texture(&mut self, rad: f64) {
+        self.naz_rot = (rad / (2.0 * PI)) % 1.0;
+    }
+
     fn aabb(center: &Point, radius: f64) -> AABB {
         let radius_vec = Vec3::splat(radius);
         AABB::from_points(&(center - &radius_vec), &(center + &radius_vec))

@@ -33,7 +33,7 @@ fn main() {
     }));
 
     // --- Geometry ---
-    let earth = Sphere::new(
+    let earth = Sphere::new_rc(
         0.5,
         Point {
             x: -1.5,
@@ -43,7 +43,7 @@ fn main() {
         earth_mat,
     );
 
-    let mars = Sphere::new(
+    let mars = Sphere::new_rc(
         0.5,
         Point {
             x: 0.0,
@@ -53,7 +53,7 @@ fn main() {
         mars_mat,
     );
 
-    let moon = Sphere::new(
+    let moon = Sphere::new_rc(
         0.5,
         Point {
             x: 1.5,
@@ -63,7 +63,7 @@ fn main() {
         moon_mat,
     );
 
-    let light = Quad::new(
+    let light = Quad::new_rc(
         Point {
             x: -2.0,
             y: 1.5,
@@ -82,7 +82,7 @@ fn main() {
         light_mat,
     );
 
-    let world_floor = Sphere::new(
+    let world_floor = Sphere::new_rc(
         100.0,
         Point {
             x: 0.0,
