@@ -7,14 +7,14 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct RotateY<H: Hittable> {
-    object: H,
+pub struct RotateY {
+    object: Rc<dyn Hittable>,
     cos_theta: f64,
     sin_theta: f64,
     bbox: AABB,
 }
 
-impl<H: Hittable> Hittable for RotateY<H> {
+impl Hittable for RotateY {
     fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
         todo!()
     }
@@ -24,12 +24,12 @@ impl<H: Hittable> Hittable for RotateY<H> {
     }
 }
 
-impl<H: Hittable> RotateY<H> {
-    pub fn new(object: H, angle: f64) -> Self {
+impl RotateY {
+    pub fn new(object: Rc<dyn Hittable>, angle: f64) -> Self {
         todo!()
     }
 
-    pub fn new_rc(object: H, angle: f64) -> Rc<Self> {
+    pub fn new_rc(object: Rc<dyn Hittable>, angle: f64) -> Rc<Self> {
         Rc::from(Self::new(object, angle))
     }
 }

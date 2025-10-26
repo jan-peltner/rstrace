@@ -1,7 +1,7 @@
 mod quad;
-mod rot;
 mod sphere;
+mod transform;
 
 pub use quad::*;
-pub use rot::*;
 pub use sphere::*;
+pub use transform::*;
