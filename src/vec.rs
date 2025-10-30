@@ -104,6 +104,31 @@ impl Vec3 {
         r_perp + r_para
     }
 
+    // 2d rotation matrix:
+    // | cos(theta) -sin(theta) |
+    // | sin(theta) cos(theta)  |
+
+    // yz-plane -> y-axis is the reference axis
+    pub fn rot_x(&self, cos_theta: f64, sin_theta: f64) -> Self {
+        let y = self.y * cos_theta - self.z * sin_theta;
+        let z = self.y * sin_theta + self.z * cos_theta;
+        Self { x: self.x, y, z }
+    }
+
+    // xz-plane -> z-axis is the reference axis
+    pub fn rot_y(&self, cos_theta: f64, sin_theta: f64) -> Self {
+        let z = self.z * cos_theta - self.x * sin_theta;
+        let x = self.z * sin_theta + self.x * cos_theta;
+        Self { x, y: self.y, z }
+    }
+
+    // xy-plane -> x-axis is the reference axis
+    pub fn rot_z(&self, cos_theta: f64, sin_theta: f64) -> Self {
+        let x = self.x * cos_theta - self.y * sin_theta;
+        let y = self.x * sin_theta + self.y * cos_theta;
+        Self { x, y, z: self.z }
+    }
+
     pub fn len_sqr(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
