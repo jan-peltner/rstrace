@@ -85,7 +85,7 @@ impl Quad {
         };
 
         quads.add(Quad::new_rc(min + dz, dy, dx, mat.clone())); // front face
-        quads.add(Quad::new_rc(min + dz + dx, dy, dz, mat.clone())); // right face
+        quads.add(Quad::new_rc(min + dx, dy, dz, mat.clone())); // right face
         quads.add(Quad::new_rc(min, dy, dx, mat.clone())); // back face
         quads.add(Quad::new_rc(min, dy, dz, mat.clone())); // left face
         quads.add(Quad::new_rc(min + dy, dz, dx, mat.clone())); // top face
