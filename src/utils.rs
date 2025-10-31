@@ -1,3 +1,7 @@
+use std::ops::Add;
+
+use crate::vec::Vec3;
+
 pub fn lerp(start: f64, end: f64, t: f64) -> f64 {
     (1.0 - t) * start + end * t
 }
@@ -53,5 +57,16 @@ impl Interval {
 
     pub fn clamp(&self, x: f64) -> f64 {
         x.min(self.max).max(self.min)
+    }
+}
+
+impl Add<f64> for Interval {
+    type Output = Self;
+
+    fn add(self, rhs: f64) -> Self::Output {
+        Self {
+            min: self.min + rhs,
+            max: self.max + rhs,
+        }
     }
 }

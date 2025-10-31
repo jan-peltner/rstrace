@@ -1,6 +1,8 @@
+use std::rc::Rc;
+
 use rstrace::bvh::BvhNode;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
-use rstrace::geometry::Quad;
+use rstrace::geometry::{Axis, Quad, Rotate, Translate};
 use rstrace::material::{Emitter, Lambertian};
 use rstrace::ray::Hittables;
 use rstrace::texture::SolidTex;
@@ -11,8 +13,8 @@ fn main() {
     let mut intrinsics = CameraIntrinsics::default();
     intrinsics.ar = 1.0;
     intrinsics.img_w = 600;
-    intrinsics.rays_per_pixel = 1000;
-    intrinsics.max_bounces = 50;
+    intrinsics.rays_per_pixel = 400;
+    intrinsics.max_bounces = 40;
     intrinsics.vfov = 40.0;
     intrinsics.background = Color::zero();
 
@@ -165,32 +167,38 @@ fn main() {
         white.clone(),
     );
 
-    let front_box = Quad::spawn_box(
-        Point {
+    let front_box = Translate::new_rc(
+        Rotate::new_rc(
+            Quad::spawn_box_rc(Point::zero(), Point::splat(165.0), white.clone()),
+            -18.0,
+            Axis::Y,
+        ),
+        Vec3 {
             x: 130.0,
             y: 0.0,
             z: 65.0,
         },
-        Point {
-            x: 295.0,
-            y: 165.0,
-            z: 230.0,
-        },
-        white.clone(),
     );
 
-    let back_box = Quad::spawn_box(
-        Point {
+    let back_box = Translate::new_rc(
+        Rotate::new_rc(
+            Quad::spawn_box_rc(
+                Point::zero(),
+                Point {
+                    x: 165.0,
+                    y: 330.0,
+                    z: 165.0,
+                },
+                white.clone(),
+            ),
+            15.0,
+            Axis::Y,
+        ),
+        Vec3 {
             x: 265.0,
             y: 0.0,
             z: 295.0,
         },
-        Point {
-            x: 430.0,
-            y: 330.0,
-            z: 460.0,
-        },
-        white.clone(),
     );
 
     let mut world = Hittables::from_vec(vec![
@@ -200,9 +208,11 @@ fn main() {
         floor_quad,
         ceiling_quad,
         back_wall_quad,
+        front_box,
+        back_box,
     ]);
-    world.extend(front_box);
-    world.extend(back_box);
+    // world.extend(front_box);
+    // world.extend(back_box);
 
     let world_root = BvhNode::from_hittables(&mut world.objects, &mut rand::rng());
 

@@ -93,6 +93,10 @@ impl Quad {
 
         quads
     }
+
+    pub fn spawn_box_rc(a: Point, b: Point, mat: Rc<dyn Material>) -> Rc<Hittables> {
+        Rc::from(Self::spawn_box(a, b, mat))
+    }
 }
 
 impl Hittable for Quad {

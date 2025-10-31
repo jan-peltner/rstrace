@@ -4,7 +4,7 @@ use crate::{
     aabb::AABB,
     ray::{Hit, Hittable, Ray3},
     utils::Interval,
-    vec::Point,
+    vec::{Point, Vec3},
 };
 
 #[derive(Debug)]
@@ -12,6 +12,45 @@ pub enum Axis {
     X,
     Y,
     Z,
+}
+
+#[derive(Debug)]
+pub struct Translate {
+    object: Rc<dyn Hittable>,
+    offset: Vec3,
+    bbox: AABB,
+}
+
+impl Hittable for Translate {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
+        let origin = ray.origin - self.offset;
+        let translated_ray = Ray3::with_time(origin, ray.dir, ray.time);
+
+        if let Some(mut hit) = self.object.hit(&translated_ray, t_range) {
+            hit.p = hit.p + self.offset;
+            Some(hit)
+        } else {
+            None
+        }
+    }
+
+    fn bbox(&self) -> AABB {
+        self.bbox
+    }
+}
+
+impl Translate {
+    pub fn new(object: Rc<dyn Hittable>, offset: Vec3) -> Self {
+        Self {
+            bbox: object.bbox() + offset,
+            object,
+            offset,
+        }
+    }
+
+    pub fn new_rc(object: Rc<dyn Hittable>, offset: Vec3) -> Rc<Self> {
+        Rc::from(Self::new(object, offset))
+    }
 }
 
 #[derive(Debug)]
