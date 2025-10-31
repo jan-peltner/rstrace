@@ -109,11 +109,11 @@ impl Rotate {
                     // bbox vertex
                     let mut v = Point { x, y, z };
 
-                    // rotate the vertex by -θ
+                    // rotate the vertex by θ
                     match axis {
-                        Axis::X => v = v.rot_x(cos_theta, -sin_theta),
-                        Axis::Y => v = v.rot_y(cos_theta, -sin_theta),
-                        Axis::Z => v = v.rot_z(cos_theta, -sin_theta),
+                        Axis::X => v = v.rot_x(cos_theta, sin_theta),
+                        Axis::Y => v = v.rot_y(cos_theta, sin_theta),
+                        Axis::Z => v = v.rot_z(cos_theta, sin_theta),
                     }
 
                     min.x = min.x.min(v.x);
