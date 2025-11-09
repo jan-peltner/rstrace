@@ -20,8 +20,13 @@ pub struct Interval {
 }
 
 impl Interval {
+    // ∅ ∪ X = X -> union between empty set and X should return X
+    // ∅ ∩ X = ∅ -> intersection between empty set and X should return empty set
     pub fn empty() -> Self {
-        Self { min: 0.0, max: 0.0 }
+        Self {
+            min: f64::INFINITY,
+            max: f64::NEG_INFINITY,
+        }
     }
 
     pub fn unit() -> Self {
