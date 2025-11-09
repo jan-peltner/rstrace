@@ -44,9 +44,9 @@ impl AABB {
 
     pub fn from_bboxes(a: &AABB, b: &AABB) -> Self {
         Self {
-            x: Interval::from_intervals(&a.x, &b.x),
-            y: Interval::from_intervals(&a.y, &b.y),
-            z: Interval::from_intervals(&a.z, &b.z),
+            x: Interval::union(&a.x, &b.x),
+            y: Interval::union(&a.y, &b.y),
+            z: Interval::union(&a.z, &b.z),
         }
     }
 

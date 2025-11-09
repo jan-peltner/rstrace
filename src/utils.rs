@@ -36,7 +36,7 @@ impl Interval {
         self
     }
 
-    pub fn from_intervals(a: &Interval, b: &Interval) -> Self {
+    pub fn union(a: &Interval, b: &Interval) -> Self {
         Self {
             min: a.min.min(b.min),
             max: a.max.max(b.max),
