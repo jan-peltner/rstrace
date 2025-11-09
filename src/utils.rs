@@ -1,6 +1,5 @@
+use core::f64;
 use std::ops::Add;
-
-use crate::vec::Vec3;
 
 pub fn lerp(start: f64, end: f64, t: f64) -> f64 {
     (1.0 - t) * start + end * t
@@ -31,6 +30,13 @@ impl Interval {
 
     pub fn unit() -> Self {
         Self { min: 0.0, max: 1.0 }
+    }
+
+    pub fn universe() -> Self {
+        Self {
+            min: f64::NEG_INFINITY,
+            max: f64::INFINITY,
+        }
     }
 
     pub fn expand(mut self, delta: f64) -> Self {

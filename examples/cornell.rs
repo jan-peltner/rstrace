@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use rstrace::bvh::BvhNode;
 use rstrace::camera::{Camera, CameraIntrinsics, CameraPose};
 use rstrace::geometry::{Axis, Quad, Rotate, Translate};
