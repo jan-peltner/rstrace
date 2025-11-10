@@ -30,12 +30,12 @@ impl<T: Texture> Material for Lambertian<T> {
         let mut reflection_dir = &hit.normal + &Vec3::rand_unit_sphere_vec(rng);
 
         if reflection_dir.near_zero() {
-            reflection_dir = hit.normal.clone();
+            reflection_dir = hit.normal;
         }
 
         Some(Scatter {
             attenuation: self.tex.value(hit.uv, &hit.p),
-            scattered_ray: Ray3::with_time(hit.p.clone(), reflection_dir, incident_ray.time),
+            scattered_ray: Ray3::with_time(hit.p, reflection_dir, incident_ray.time),
         })
     }
 }
@@ -57,7 +57,7 @@ impl<T: Texture> Material for Metal<T> {
         Some(Scatter {
             attenuation: self.tex.value(hit.uv, &hit.p),
             scattered_ray: Ray3::with_time(
-                hit.p.clone(),
+                hit.p,
                 incident_ray.dir.norm().reflect(&hit.normal)
                     + (Vec3::rand_unit_sphere_vec(rng) * self.fuzz),
                 incident_ray.time,
@@ -118,7 +118,7 @@ impl Material for Dielectric {
                 y: 1.0,
                 z: 1.0,
             },
-            scattered_ray: Ray3::with_time(hit.p.clone(), dir, incident_ray.time),
+            scattered_ray: Ray3::with_time(hit.p, dir, incident_ray.time),
         })
     }
 }
@@ -140,5 +140,29 @@ impl<T: Texture> Material for Emitter<T> {
     }
     fn emit(&self, uv: (f64, f64), p: &Point) -> Color {
         self.tex.value(uv, p)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Isotropic<T: Texture> {
+    tex: T,
+}
+
+impl<T: Texture> Isotropic<T> {
+    pub fn new(tex: T) -> Rc<Self> {
+        Rc::from(Self { tex })
+    }
+}
+
+impl<T: Texture> Material for Isotropic<T> {
+    fn scatter(&self, incident_ray: &Ray3, hit: &Hit, rng: &mut dyn RngCore) -> Option<Scatter> {
+        Some(Scatter {
+            attenuation: self.tex.value(hit.uv, &hit.p),
+            scattered_ray: Ray3::with_time(
+                hit.p,
+                Vec3::rand_unit_sphere_vec(rng),
+                incident_ray.time,
+            ),
+        })
     }
 }

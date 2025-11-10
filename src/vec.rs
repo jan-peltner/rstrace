@@ -60,6 +60,8 @@ impl Vec3 {
         loop {
             let v = Self::rand_range(rng, -1.0, 1.0);
             let len_sqr = v.len_sqr();
+            // if len_sqr > 1 then sqrt(len_sqr) > 1 -> more performant rejection than checking for
+            // sqrt(len_qrt) explicitly
             if len_sqr <= 1.0 {
                 return v / len_sqr.sqrt();
             }
