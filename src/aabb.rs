@@ -1,8 +1,8 @@
 use std::ops::Add;
 
 use crate::{
+    interval::Interval,
     ray::Ray3,
-    utils::Interval,
     vec::{Point, Vec3},
 };
 

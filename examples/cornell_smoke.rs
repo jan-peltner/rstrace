@@ -225,5 +225,5 @@ fn main() {
     let world_root = BvhNode::from_hittables(&mut world.objects, &mut rand::rng());
 
     // --- Render ---
-    let _ = camera.render(world_root, "cornell_smoke.ppm");
+    let _ = camera.render(world_root, "cornell_smoke.png");
 }

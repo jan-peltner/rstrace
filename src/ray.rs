@@ -3,8 +3,8 @@ use std::rc::Rc;
 
 use crate::{
     aabb::AABB,
+    interval::Interval,
     material::Material,
-    utils::Interval,
     vec::{Color, Point, Vec3},
 };
 

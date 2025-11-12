@@ -5,9 +5,9 @@ use rand::Rng;
 
 use crate::{
     aabb::AABB,
+    interval::Interval,
     material::Material,
     ray::{Hit, Hittable, Ray3},
-    utils::Interval,
     vec::Vec3,
 };
 

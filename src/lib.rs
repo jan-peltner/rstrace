@@ -2,7 +2,7 @@ pub mod aabb;
 pub mod bvh;
 pub mod camera;
 pub mod geometry;
-pub mod image;
+pub mod interval;
 pub mod material;
 pub mod ray;
 pub mod texture;

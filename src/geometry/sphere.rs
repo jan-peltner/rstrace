@@ -3,9 +3,9 @@ use std::rc::Rc;
 
 use crate::{
     aabb::AABB,
+    interval::Interval,
     material::Material,
     ray::{Hit, Hittable, Ray3},
-    utils::Interval,
     vec::{Point, Vec3},
 };
 
