@@ -1,18 +1,13 @@
 use crate::{
-    image::Image,
+    interval::Interval,
     ray::{Hittable, Ray3},
-    utils::{linear_to_gamma, Interval},
+    utils::{linear_to_gamma, map_rgb},
     vec::{Color, Pixel, Point, Vec3},
 };
 use core::f64;
+use image::{ImageBuffer, ImageResult, Rgb};
 use rand::{rngs::ThreadRng, Rng};
-use std::{
-    cell::RefCell,
-    fs::File,
-    io::{BufWriter, Write},
-    path::Path,
-    rc::Rc,
-};
+use std::{cell::RefCell, path::Path, rc::Rc};
 
 pub struct CameraPose {
     pub lookfrom: Vec3,
@@ -83,7 +78,11 @@ pub struct Camera<R: Rng> {
 
 impl<R: Rng> Camera<R> {
     pub fn new(intrinsics: CameraIntrinsics, pose: CameraPose, rng: R) -> Self {
-        let img_h = Image::compute_height(intrinsics.img_w, intrinsics.ar);
+        let img_h = Interval {
+            min: 1.0,
+            max: f64::INFINITY,
+        }
+        .clamp(intrinsics.img_w as f64 / intrinsics.ar) as u32;
 
         // Half angle of vertical fov -> measured from z-axis to top
         let theta = intrinsics.vfov.to_radians() / 2.0;
@@ -140,32 +139,37 @@ impl<R: Rng> Camera<R> {
         }
     }
 
-    pub fn render(&self, world: Rc<dyn Hittable>, path: impl AsRef<Path>) -> std::io::Result<()> {
+    pub fn render(&self, world: Rc<dyn Hittable>, path: impl AsRef<Path>) -> ImageResult<()> {
         println!("Rendering image @ {}x{}...", self.img_w, self.img_h);
 
-        let image = Image::new(self.img_w, self.img_h, |x, y| {
-            let mut px = Pixel::zero();
-            let rng = &mut self.rng.borrow_mut();
+        let mut image = ImageBuffer::new(self.img_w, self.img_h);
 
-            for _ in 0..self.rays_per_pixel {
-                let ray = self.get_ray(x, y, rng);
-                px = px + self.color_ray(&ray, world.clone(), self.max_bounces, rng);
+        for y in 0..self.img_h {
+            for x in 0..self.img_w {
+                let mut px = Pixel::zero();
+                let rng = &mut self.rng.borrow_mut();
+
+                for _ in 0..self.rays_per_pixel {
+                    let ray = self.get_ray(x, y, rng);
+                    px = px + self.color_ray(&ray, world.clone(), self.max_bounces, rng);
+                }
+
+                px = px / self.rays_per_pixel as f64;
+
+                px.x = map_rgb(linear_to_gamma(px.x));
+                px.y = map_rgb(linear_to_gamma(px.y));
+                px.z = map_rgb(linear_to_gamma(px.z));
+
+                image.put_pixel(x, y, Rgb::from([px.x as u8, px.y as u8, px.z as u8]));
             }
 
-            px = px / self.rays_per_pixel as f64;
+            let scanline = y + 1;
+            if scanline % 100 == 0 {
+                println!("Scanlines processed: {}/{}", scanline, self.img_h);
+            }
+        }
 
-            px.x = Image::map_to_rgb_space(linear_to_gamma(px.x));
-            px.y = Image::map_to_rgb_space(linear_to_gamma(px.y));
-            px.z = Image::map_to_rgb_space(linear_to_gamma(px.z));
-
-            px
-        });
-
-        let file = File::create(path)?;
-        let mut writer = BufWriter::new(file);
-        write!(writer, "{}", image)?;
-
-        Ok(())
+        image.save(path)
     }
 
     fn color_ray(

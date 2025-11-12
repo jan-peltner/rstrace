@@ -4,8 +4,8 @@ use rand::Rng;
 
 use crate::{
     aabb::AABB,
+    interval::Interval,
     ray::{Hit, Hittable, Ray3},
-    utils::Interval,
 };
 
 // represents both individual nodes in the tree as well as the tree itself (root node)
