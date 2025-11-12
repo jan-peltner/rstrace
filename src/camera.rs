@@ -59,6 +59,8 @@ impl Default for CameraIntrinsics {
     }
 }
 
+pub type RenderResult<T> = ImageResult<T>;
+
 // make Camera generic over R so we can potentially use different rngs later
 pub struct Camera<R: Rng> {
     img_w: u32,
@@ -139,7 +141,7 @@ impl<R: Rng> Camera<R> {
         }
     }
 
-    pub fn render(&self, world: Rc<dyn Hittable>, path: impl AsRef<Path>) -> ImageResult<()> {
+    pub fn render(&self, world: Rc<dyn Hittable>, path: impl AsRef<Path>) -> RenderResult<()> {
         println!("Rendering image @ {}x{}...", self.img_w, self.img_h);
 
         let mut image = ImageBuffer::new(self.img_w, self.img_h);
