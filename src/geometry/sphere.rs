@@ -1,5 +1,7 @@
 use core::f64::{self, consts::PI};
-use std::rc::Rc;
+use std::sync::Arc;
+
+use rand::Rng;
 
 use crate::{
     aabb::AABB,
@@ -13,14 +15,14 @@ use crate::{
 pub struct Sphere {
     pub radius: f64,
     pub center: Ray3,
-    mat: Rc<dyn Material>,
+    mat: Arc<dyn Material>,
     bbox: AABB,
     // normalized azimuthal rotation
     naz_rot: f64,
 }
 
 impl Sphere {
-    pub fn new(radius: f64, center: Point, mat: Rc<dyn Material>) -> Self {
+    pub fn new(radius: f64, center: Point, mat: Arc<dyn Material>) -> Self {
         Self {
             radius,
             center: Ray3::without_time(center, Vec3::zero()),
@@ -30,8 +32,8 @@ impl Sphere {
         }
     }
 
-    pub fn new_rc(radius: f64, center: Point, mat: Rc<dyn Material>) -> Rc<Self> {
-        Rc::from(Self::new(radius, center, mat))
+    pub fn new_arc(radius: f64, center: Point, mat: Arc<dyn Material>) -> Arc<Self> {
+        Arc::from(Self::new(radius, center, mat))
     }
 
     pub fn rotate_texture(&mut self, rad: f64) {
@@ -78,8 +80,8 @@ impl Sphere {
     }
 }
 
-impl Hittable for Sphere {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
+impl<R: Rng> Hittable<R> for Sphere {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval, _rng: &mut R) -> Option<Hit> {
         let current_center = self.center.at(ray.time);
         let cq = &ray.origin - &current_center;
         let a = ray.dir.dot(&ray.dir);

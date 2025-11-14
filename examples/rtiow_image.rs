@@ -29,7 +29,7 @@ fn main() {
         },
     };
 
-    let camera = Camera::new(intrinsics, pose, rand::rng());
+    let camera = Camera::new_default_rng(intrinsics, pose);
     let mut rng = rand::rng();
 
     // --- World ---
@@ -40,7 +40,7 @@ fn main() {
         y: 0.5,
         z: 0.5,
     }));
-    world.add(Sphere::new_rc(
+    world.add(Sphere::new_arc(
         1000.0,
         Point {
             x: 0.0,
@@ -70,22 +70,22 @@ fn main() {
             {
                 if rand_mat_sample < 0.8 {
                     let mat = Lambertian::new(SolidTex::new(Color::rand(&mut rng)));
-                    world.add(Sphere::new_rc(0.2, center, mat));
+                    world.add(Sphere::new_arc(0.2, center, mat));
                 } else if rand_mat_sample < 0.95 {
                     let mat = Metal::new(
                         SolidTex::new(Color::rand_range(&mut rng, 0.0, 0.5)),
                         rng.random_range(0.0..0.5),
                     );
-                    world.add(Sphere::new_rc(0.2, center, mat));
+                    world.add(Sphere::new_arc(0.2, center, mat));
                 } else {
                     let mat = Dielectric::new(1.5);
-                    world.add(Sphere::new_rc(0.2, center, mat));
+                    world.add(Sphere::new_arc(0.2, center, mat));
                 }
             }
         }
     }
 
-    world.add(Sphere::new_rc(
+    world.add(Sphere::new_arc(
         1.0,
         Point {
             x: 0.0,
@@ -94,7 +94,7 @@ fn main() {
         },
         Dielectric::new(1.9),
     ));
-    world.add(Sphere::new_rc(
+    world.add(Sphere::new_arc(
         1.0,
         Point {
             x: -4.0,
@@ -107,7 +107,7 @@ fn main() {
             z: 0.1,
         })),
     ));
-    world.add(Sphere::new_rc(
+    world.add(Sphere::new_arc(
         1.0,
         Point {
             x: 4.0,

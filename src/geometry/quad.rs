@@ -1,4 +1,6 @@
-use std::rc::Rc;
+use std::sync::Arc;
+
+use rand::Rng;
 
 use crate::{
     aabb::AABB,
@@ -16,12 +18,12 @@ pub struct Quad {
     n: Vec3,
     w: Vec3,
     d: f64,
-    mat: Rc<dyn Material>,
+    mat: Arc<dyn Material>,
     bbox: AABB,
 }
 
 impl Quad {
-    pub fn new(q: Point, v: Vec3, u: Vec3, mat: Rc<dyn Material>) -> Self {
+    pub fn new(q: Point, v: Vec3, u: Vec3, mat: Arc<dyn Material>) -> Self {
         // normal vector to the quad containing 2d plane -> defines our plane
         let n = u.cross(&v);
         let n_norm = n.norm();
@@ -41,8 +43,8 @@ impl Quad {
         }
     }
 
-    pub fn new_rc(q: Point, v: Vec3, u: Vec3, mat: Rc<dyn Material>) -> Rc<Self> {
-        Rc::from(Self::new(q, v, u, mat))
+    pub fn new_arc(q: Point, v: Vec3, u: Vec3, mat: Arc<dyn Material>) -> Arc<Self> {
+        Arc::from(Self::new(q, v, u, mat))
     }
 
     fn aabb(q: Point, v: Vec3, u: Vec3) -> AABB {
@@ -53,7 +55,7 @@ impl Quad {
         AABB::from_bboxes(&box_q_qvu, &box_qu_qv).maybe_pad()
     }
 
-    pub fn spawn_box(a: Point, b: Point, mat: Rc<dyn Material>) -> Hittables {
+    pub fn spawn_box<R: Rng>(a: Point, b: Point, mat: Arc<dyn Material>) -> Hittables<R> {
         let mut quads = Hittables::new();
 
         let min = Point {
@@ -84,23 +86,23 @@ impl Quad {
             z: max.z - min.z,
         };
 
-        quads.add(Quad::new_rc(min + dz, dy, dx, mat.clone())); // front face
-        quads.add(Quad::new_rc(min + dx, dy, dz, mat.clone())); // right face
-        quads.add(Quad::new_rc(min, dy, dx, mat.clone())); // back face
-        quads.add(Quad::new_rc(min, dy, dz, mat.clone())); // left face
-        quads.add(Quad::new_rc(min + dy, dz, dx, mat.clone())); // top face
-        quads.add(Quad::new_rc(min, dz, dx, mat.clone())); // bottom face
+        quads.add(Quad::new_arc(min + dz, dy, dx, mat.clone())); // front face
+        quads.add(Quad::new_arc(min + dx, dy, dz, mat.clone())); // right face
+        quads.add(Quad::new_arc(min, dy, dx, mat.clone())); // back face
+        quads.add(Quad::new_arc(min, dy, dz, mat.clone())); // left face
+        quads.add(Quad::new_arc(min + dy, dz, dx, mat.clone())); // top face
+        quads.add(Quad::new_arc(min, dz, dx, mat.clone())); // bottom face
 
         quads
     }
 
-    pub fn spawn_box_rc(a: Point, b: Point, mat: Rc<dyn Material>) -> Rc<Hittables> {
-        Rc::from(Self::spawn_box(a, b, mat))
+    pub fn spawn_box_rc<R: Rng>(a: Point, b: Point, mat: Arc<dyn Material>) -> Arc<Hittables<R>> {
+        Arc::from(Self::spawn_box(a, b, mat))
     }
 }
 
-impl Hittable for Quad {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
+impl<R: Rng> Hittable<R> for Quad {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval, _rng: &mut R) -> Option<Hit> {
         let denominator = ray.dir.dot(&self.n);
         // ray lies parallel to the 2d plane -> no intersection
         if denominator.abs() < 1e-8 {

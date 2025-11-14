@@ -1,4 +1,6 @@
-use std::rc::Rc;
+use std::sync::Arc;
+
+use rand::Rng;
 
 use crate::{
     aabb::AABB,
@@ -14,19 +16,28 @@ pub enum Axis {
     Z,
 }
 
-#[derive(Debug)]
-pub struct Translate {
-    object: Rc<dyn Hittable>,
+pub struct Translate<R: Rng> {
+    object: Arc<dyn Hittable<R>>,
     offset: Vec3,
     bbox: AABB,
 }
 
-impl Hittable for Translate {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
+impl<R: Rng> std::fmt::Debug for Translate<R> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Translate")
+            .field("object", &self.object)
+            .field("offset", &self.offset)
+            .field("bbox", &self.bbox)
+            .finish()
+    }
+}
+
+impl<R: Rng> Hittable<R> for Translate<R> {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval, rng: &mut R) -> Option<Hit> {
         let origin = ray.origin - self.offset;
         let translated_ray = Ray3::with_time(origin, ray.dir, ray.time);
 
-        if let Some(mut hit) = self.object.hit(&translated_ray, t_range) {
+        if let Some(mut hit) = self.object.hit(&translated_ray, t_range, rng) {
             hit.p = hit.p + self.offset;
             Some(hit)
         } else {
@@ -39,8 +50,8 @@ impl Hittable for Translate {
     }
 }
 
-impl Translate {
-    pub fn new(object: Rc<dyn Hittable>, offset: Vec3) -> Self {
+impl<R: Rng> Translate<R> {
+    pub fn new(object: Arc<dyn Hittable<R>>, offset: Vec3) -> Self {
         Self {
             bbox: object.bbox() + offset,
             object,
@@ -48,22 +59,33 @@ impl Translate {
         }
     }
 
-    pub fn new_rc(object: Rc<dyn Hittable>, offset: Vec3) -> Rc<Self> {
-        Rc::from(Self::new(object, offset))
+    pub fn new_arc(object: Arc<dyn Hittable<R>>, offset: Vec3) -> Arc<Self> {
+        Arc::from(Self::new(object, offset))
     }
 }
 
-#[derive(Debug)]
-pub struct Rotate {
-    object: Rc<dyn Hittable>,
+pub struct Rotate<R: Rng> {
+    object: Arc<dyn Hittable<R>>,
     cos_theta: f64,
     sin_theta: f64,
     axis: Axis,
     bbox: AABB,
 }
 
-impl Hittable for Rotate {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
+impl<R: Rng> std::fmt::Debug for Rotate<R> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Translate")
+            .field("object", &self.object)
+            .field("cos_theta", &self.cos_theta)
+            .field("sin_theta", &self.sin_theta)
+            .field("axis", &self.axis)
+            .field("bbox", &self.bbox)
+            .finish()
+    }
+}
+
+impl<R: Rng> Hittable<R> for Rotate<R> {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval, rng: &mut R) -> Option<Hit> {
         // math for rotating about the y-axis:
         // rotate the incident ray by -θ (inverse rotation) since we rotate the ray rather than the geometry itself
         // we rotate in the xz-plane starting from the positive x-axis
@@ -91,7 +113,7 @@ impl Hittable for Rotate {
 
         let rotated_ray = Ray3::with_time(origin, dir, ray.time);
 
-        if let Some(mut hit) = self.object.hit(&rotated_ray, t_range) {
+        if let Some(mut hit) = self.object.hit(&rotated_ray, t_range, rng) {
             // rotate back the intersection point and surface normal (positive sin_theta)
             // mathematically rotation doesn't change the length of a vector but for robustness sake (floating
             // point inaccuracies) we normalize the surface normal again
@@ -120,8 +142,8 @@ impl Hittable for Rotate {
     }
 }
 
-impl Rotate {
-    pub fn new(object: Rc<dyn Hittable>, angle: f64, axis: Axis) -> Self {
+impl<R: Rng> Rotate<R> {
+    pub fn new(object: Arc<dyn Hittable<R>>, angle: f64, axis: Axis) -> Self {
         let rad = angle.to_radians();
         let cos_theta = rad.cos();
         let sin_theta = rad.sin();
@@ -173,7 +195,7 @@ impl Rotate {
         }
     }
 
-    pub fn new_rc(object: Rc<dyn Hittable>, angle: f64, axis: Axis) -> Rc<Self> {
-        Rc::from(Self::new(object, angle, axis))
+    pub fn new_arc(object: Arc<dyn Hittable<R>>, angle: f64, axis: Axis) -> Arc<Self> {
+        Arc::from(Self::new(object, angle, axis))
     }
 }

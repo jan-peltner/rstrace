@@ -1,5 +1,5 @@
 use rand::{Rng, RngCore};
-use std::{fmt::Debug, rc::Rc};
+use std::{fmt::Debug, sync::Arc};
 
 use crate::{
     ray::{Hit, Ray3, Scatter},
@@ -7,7 +7,7 @@ use crate::{
     vec::{Color, Point, Vec3},
 };
 
-pub trait Material: Debug {
+pub trait Material: Debug + Send + Sync {
     fn scatter(&self, incident_ray: &Ray3, hit: &Hit, rng: &mut dyn RngCore) -> Option<Scatter>;
     fn emit(&self, _uv: (f64, f64), _p: &Point) -> Color {
         Color::zero()
@@ -20,8 +20,8 @@ pub struct Lambertian<T: Texture> {
 }
 
 impl<T: Texture> Lambertian<T> {
-    pub fn new(tex: T) -> Rc<Self> {
-        Rc::from(Self { tex })
+    pub fn new(tex: T) -> Arc<Self> {
+        Arc::from(Self { tex })
     }
 }
 
@@ -47,8 +47,8 @@ pub struct Metal<T: Texture> {
 }
 
 impl<T: Texture> Metal<T> {
-    pub fn new(tex: T, fuzz: f64) -> Rc<Self> {
-        Rc::from(Self { tex, fuzz })
+    pub fn new(tex: T, fuzz: f64) -> Arc<Self> {
+        Arc::from(Self { tex, fuzz })
     }
 }
 
@@ -72,8 +72,8 @@ pub struct Dielectric {
 }
 
 impl Dielectric {
-    pub fn new(refractive_index: f64) -> Rc<Self> {
-        Rc::from(Self { refractive_index })
+    pub fn new(refractive_index: f64) -> Arc<Self> {
+        Arc::from(Self { refractive_index })
     }
 }
 
@@ -129,8 +129,8 @@ pub struct Emitter<T: Texture> {
 }
 
 impl<T: Texture> Emitter<T> {
-    pub fn new(tex: T) -> Rc<Self> {
-        Rc::from(Self { tex })
+    pub fn new(tex: T) -> Arc<Self> {
+        Arc::from(Self { tex })
     }
 }
 
@@ -149,8 +149,8 @@ pub struct Isotropic<T: Texture> {
 }
 
 impl<T: Texture> Isotropic<T> {
-    pub fn new(tex: T) -> Rc<Self> {
-        Rc::from(Self { tex })
+    pub fn new(tex: T) -> Arc<Self> {
+        Arc::from(Self { tex })
     }
 }
 

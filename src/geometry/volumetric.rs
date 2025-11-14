@@ -1,5 +1,5 @@
 use core::f64;
-use std::{cell::RefCell, rc::Rc};
+use std::sync::Arc;
 
 use rand::Rng;
 
@@ -12,10 +12,9 @@ use crate::{
 };
 
 pub struct ConstantMedium<R: Rng> {
-    boundary: Rc<dyn Hittable>,
+    boundary: Arc<dyn Hittable<R>>,
     neg_inv_density: f64,
-    phase_function: Rc<dyn Material>,
-    rng: RefCell<R>,
+    phase_function: Arc<dyn Material>,
 }
 
 impl<R: Rng> std::fmt::Debug for ConstantMedium<R> {
@@ -29,9 +28,9 @@ impl<R: Rng> std::fmt::Debug for ConstantMedium<R> {
     }
 }
 
-impl<R: Rng> Hittable for ConstantMedium<R> {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
-        let mut entry = match self.boundary.hit(ray, &mut Interval::universe()) {
+impl<R: Rng> Hittable<R> for ConstantMedium<R> {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval, rng: &mut R) -> Option<Hit> {
+        let mut entry = match self.boundary.hit(ray, &mut Interval::universe(), rng) {
             Some(hit) => hit,
             None => return None,
         };
@@ -42,6 +41,7 @@ impl<R: Rng> Hittable for ConstantMedium<R> {
                 min: entry.t + 0.0001,
                 max: f64::INFINITY,
             },
+            rng,
         ) {
             Some(hit) => hit,
             None => return None,
@@ -64,7 +64,7 @@ impl<R: Rng> Hittable for ConstantMedium<R> {
 
         let ray_len = ray.dir.len();
         let dist_in_boundary = (exit.t - entry.t) * ray_len;
-        let hit_dist = self.neg_inv_density * self.rng.borrow_mut().random::<f64>().ln();
+        let hit_dist = self.neg_inv_density * rng.random::<f64>().ln();
 
         // hit occured outside of medium's boundary
         if hit_dist > dist_in_boundary {
@@ -94,25 +94,22 @@ impl<R: Rng> Hittable for ConstantMedium<R> {
 
 impl<R: Rng> ConstantMedium<R> {
     pub fn new(
-        boundary: Rc<dyn Hittable>,
+        boundary: Arc<dyn Hittable<R>>,
         density: f64,
-        phase_function: Rc<dyn Material>,
-        rng: R,
+        phase_function: Arc<dyn Material>,
     ) -> Self {
         Self {
             boundary,
             neg_inv_density: -1.0 / density,
             phase_function,
-            rng: RefCell::new(rng),
         }
     }
 
-    pub fn new_rc(
-        boundary: Rc<dyn Hittable>,
+    pub fn new_arc(
+        boundary: Arc<dyn Hittable<R>>,
         density: f64,
-        phase_function: Rc<dyn Material>,
-        rng: R,
-    ) -> Rc<Self> {
-        Rc::new(Self::new(boundary, density, phase_function, rng))
+        phase_function: Arc<dyn Material>,
+    ) -> Arc<Self> {
+        Arc::new(Self::new(boundary, density, phase_function))
     }
 }

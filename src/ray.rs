@@ -1,5 +1,6 @@
-use std::fmt::Debug;
-use std::rc::Rc;
+use std::{fmt::Debug, sync::Arc};
+
+use rand::Rng;
 
 use crate::{
     aabb::AABB,
@@ -40,21 +41,29 @@ pub struct Hit {
     pub uv: (f64, f64),
     pub front_face: bool,
     pub t: f64,
-    pub mat: Rc<dyn Material>,
+    pub mat: Arc<dyn Material>,
 }
 
-pub trait Hittable: Debug {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit>;
+pub trait Hittable<R: Rng>: Debug + Send + Sync {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval, rng: &mut R) -> Option<Hit>;
     fn bbox(&self) -> AABB;
 }
 
-#[derive(Debug)]
-pub struct Hittables {
-    pub objects: Vec<Rc<dyn Hittable>>,
+pub struct Hittables<R: Rng> {
+    pub objects: Vec<Arc<dyn Hittable<R>>>,
     bbox: AABB,
 }
 
-impl Hittables {
+impl<R: Rng> std::fmt::Debug for Hittables<R> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Hittables")
+            .field("objects", &self.objects)
+            .field("bbox", &self.bbox)
+            .finish()
+    }
+}
+
+impl<R: Rng> Hittables<R> {
     pub fn new() -> Self {
         Self {
             objects: Vec::new(),
@@ -62,7 +71,7 @@ impl Hittables {
         }
     }
 
-    pub fn from_vec(objects: Vec<Rc<dyn Hittable>>) -> Self {
+    pub fn from_vec(objects: Vec<Arc<dyn Hittable<R>>>) -> Self {
         let mut bbox = AABB::empty();
         for obj in objects.iter() {
             bbox = AABB::from_bboxes(&bbox, &obj.bbox());
@@ -70,7 +79,7 @@ impl Hittables {
         Self { objects, bbox }
     }
 
-    pub fn add(&mut self, obj: Rc<dyn Hittable>) {
+    pub fn add(&mut self, obj: Arc<dyn Hittable<R>>) {
         if self.objects.is_empty() {
             self.bbox = obj.bbox();
         } else {
@@ -79,18 +88,18 @@ impl Hittables {
         self.objects.push(obj);
     }
 
-    pub fn extend(&mut self, hittables: Hittables) {
+    pub fn extend(&mut self, hittables: Hittables<R>) {
         self.bbox = AABB::from_bboxes(&self.bbox, &hittables.bbox());
         self.objects.extend(hittables.objects);
     }
 }
 
-impl Hittable for Hittables {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
+impl<R: Rng> Hittable<R> for Hittables<R> {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval, rng: &mut R) -> Option<Hit> {
         let mut closest_hit: Option<Hit> = None;
 
         for hittable in self.objects.iter() {
-            if let Some(hit) = hittable.hit(ray, t_range) {
+            if let Some(hit) = hittable.hit(ray, t_range, rng) {
                 t_range.max = hit.t;
                 closest_hit = Some(hit);
             }

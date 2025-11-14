@@ -28,7 +28,7 @@ fn main() {
         z: 0.0,
     };
 
-    let camera = Camera::with_default_rng(intrinsics, pose);
+    let camera = Camera::new_default_rng(intrinsics, pose);
 
     let red = Lambertian::new(SolidTex::new(Color {
         x: 0.65,
@@ -51,7 +51,7 @@ fn main() {
         z: 15.0,
     }));
 
-    let right_quad = Quad::new_rc(
+    let right_quad = Quad::new_arc(
         Point {
             x: 555.0,
             y: 0.0,
@@ -70,7 +70,7 @@ fn main() {
         green,
     );
 
-    let left_quad = Quad::new_rc(
+    let left_quad = Quad::new_arc(
         Point {
             x: 0.0,
             y: 0.0,
@@ -89,7 +89,7 @@ fn main() {
         red,
     );
 
-    let light_quad = Quad::new_rc(
+    let light_quad = Quad::new_arc(
         Point {
             x: 343.0,
             y: 554.0,
@@ -108,7 +108,7 @@ fn main() {
         light,
     );
 
-    let floor_quad = Quad::new_rc(
+    let floor_quad = Quad::new_arc(
         Point {
             x: 0.0,
             y: 0.0,
@@ -127,7 +127,7 @@ fn main() {
         white.clone(),
     );
 
-    let ceiling_quad = Quad::new_rc(
+    let ceiling_quad = Quad::new_arc(
         Point {
             x: 555.0,
             y: 555.0,
@@ -146,7 +146,7 @@ fn main() {
         white.clone(),
     );
 
-    let back_wall_quad = Quad::new_rc(
+    let back_wall_quad = Quad::new_arc(
         Point {
             x: 0.0,
             y: 0.0,
@@ -165,8 +165,8 @@ fn main() {
         white.clone(),
     );
 
-    let front_box = Translate::new_rc(
-        Rotate::new_rc(
+    let front_box = Translate::new_arc(
+        Rotate::new_arc(
             Quad::spawn_box_rc(Point::zero(), Point::splat(165.0), white.clone()),
             -18.0,
             Axis::Y,
@@ -178,8 +178,8 @@ fn main() {
         },
     );
 
-    let back_box = Translate::new_rc(
-        Rotate::new_rc(
+    let back_box = Translate::new_arc(
+        Rotate::new_arc(
             Quad::spawn_box_rc(
                 Point::zero(),
                 Point {

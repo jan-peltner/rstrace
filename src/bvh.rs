@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use rand::Rng;
 
@@ -12,13 +12,13 @@ use crate::{
 // tree structure:
 // non-leaf-nodes -> BvhNode
 // leaf-nodes -> geometry primitives
-pub struct BvhNode {
-    left: Rc<dyn Hittable>,
-    right: Rc<dyn Hittable>,
+pub struct BvhNode<R: Rng> {
+    left: Arc<dyn Hittable<R>>,
+    right: Arc<dyn Hittable<R>>,
     bbox: AABB,
 }
 
-impl std::fmt::Debug for BvhNode {
+impl<R: Rng> std::fmt::Debug for BvhNode<R> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("BvhNode")
             .field("bbox", &self.bbox)
@@ -28,13 +28,13 @@ impl std::fmt::Debug for BvhNode {
     }
 }
 
-impl Hittable for BvhNode {
-    fn hit(&self, ray: &Ray3, t_range: &mut Interval) -> Option<Hit> {
+impl<R: Rng> Hittable<R> for BvhNode<R> {
+    fn hit(&self, ray: &Ray3, t_range: &mut Interval, rng: &mut R) -> Option<Hit> {
         if !self.bbox().hit(ray, *t_range) {
             return None;
         }
 
-        let hit_left = self.left.hit(ray, t_range);
+        let hit_left = self.left.hit(ray, t_range, rng);
 
         if let Some(hit_left) = &hit_left {
             if hit_left.t < t_range.max {
@@ -42,7 +42,7 @@ impl Hittable for BvhNode {
             }
         }
 
-        let hit_right = self.right.hit(ray, t_range);
+        let hit_right = self.right.hit(ray, t_range, rng);
 
         hit_right.or(hit_left)
     }
@@ -52,20 +52,20 @@ impl Hittable for BvhNode {
     }
 }
 
-impl BvhNode {
-    pub fn from_hittables<R: Rng>(
-        hittables: &mut [Rc<dyn Hittable>],
+impl<R: Rng + 'static> BvhNode<R> {
+    pub fn from_hittables(
+        hittables: &mut [Arc<dyn Hittable<R>>],
         rng: &mut R,
-    ) -> Rc<dyn Hittable> {
+    ) -> Arc<dyn Hittable<R>> {
         Self::build_tree(hittables, 0, hittables.len(), rng)
     }
 
-    fn build_tree<R: Rng>(
-        hittables: &mut [Rc<dyn Hittable>],
+    fn build_tree(
+        hittables: &mut [Arc<dyn Hittable<R>>],
         start: usize,
         end: usize,
         rng: &mut R,
-    ) -> Rc<dyn Hittable> {
+    ) -> Arc<dyn Hittable<R>> {
         let axis_index: usize = rng.random_range(0..3);
 
         let (left, right) = match end - start {
@@ -93,7 +93,7 @@ impl BvhNode {
             }
         };
 
-        Rc::from(Self {
+        Arc::from(Self {
             bbox: AABB::from_bboxes(&left.bbox(), &right.bbox()),
             left,
             right,

@@ -3,7 +3,7 @@ use image::{ImageError, ImageReader, RgbImage};
 use crate::vec::{Color, Point};
 use std::{fmt::Debug, path::Path};
 
-pub trait Texture: Debug {
+pub trait Texture: Debug + Send + Sync {
     fn value(&self, uv: (f64, f64), p: &Point) -> Color;
 }
 

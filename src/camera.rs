@@ -6,8 +6,11 @@ use crate::{
 };
 use core::f64;
 use image::{ImageBuffer, ImageResult, Rgb};
-use rand::{rngs::ThreadRng, Rng};
-use std::{cell::RefCell, path::Path, rc::Rc};
+use rand::{
+    rngs::{SmallRng, ThreadRng},
+    Rng, SeedableRng,
+};
+use std::{marker::PhantomData, path::Path, sync::Arc, thread, time::Instant};
 
 pub struct CameraPose {
     pub lookfrom: Vec3,
@@ -75,11 +78,13 @@ pub struct Camera<R: Rng> {
     max_bounces: u32,
     pose: CameraPose,
     background: Color,
-    rng: RefCell<R>,
+    // use function pointer for PhantomData<T> so we get the Sync + Send auto trait implementations
+    rng_marker: PhantomData<fn() -> R>,
+    rng_base_seed: Option<u64>,
 }
 
 impl<R: Rng> Camera<R> {
-    pub fn new(intrinsics: CameraIntrinsics, pose: CameraPose, rng: R) -> Self {
+    pub fn new(intrinsics: CameraIntrinsics, pose: CameraPose, seed: Option<u64>) -> Self {
         let img_h = Interval {
             min: 1.0,
             max: f64::INFINITY,
@@ -137,37 +142,94 @@ impl<R: Rng> Camera<R> {
             max_bounces: intrinsics.max_bounces,
             pose,
             background: intrinsics.background,
-            rng: RefCell::new(rng),
+            rng_marker: PhantomData,
+            rng_base_seed: seed,
         }
     }
 
-    pub fn render(&self, world: Rc<dyn Hittable>, path: impl AsRef<Path>) -> RenderResult<()> {
+    pub fn render_with<F>(
+        &self,
+        world: Arc<dyn Hittable<R>>,
+        path: impl AsRef<Path>,
+        make_rng: F,
+    ) -> RenderResult<()>
+    where
+        F: Fn(u64) -> R + Send + Clone + Copy + 'static,
+    {
+        let start = Instant::now();
         println!("Rendering image @ {}x{}...", self.img_w, self.img_h);
+
+        let num_cpus = num_cpus::get();
+        println!("{num_cpus} thread(s) available!");
+
+        let rows_per_thread = (self.img_h as f64 / num_cpus as f64).ceil() as usize;
+        println!("Processing {rows_per_thread} rows per thread!");
+
+        let mut pixels = thread::scope(|scope| {
+            let handles: Vec<_> = (0..num_cpus)
+                .map(|i| {
+                    scope.spawn({
+                        let world = world.clone();
+                        move || {
+                            println!("#{} thread spawned!", i + 1);
+                            let mut rows: Vec<(usize, Vec<Pixel>)> =
+                                Vec::with_capacity(rows_per_thread);
+                            let mut rng = make_rng(i as u64);
+                            let start = i * rows_per_thread;
+                            let end = (self.img_h as usize).min(start + rows_per_thread);
+                            for y in start..end {
+                                let mut row: Vec<Pixel> = Vec::with_capacity(self.img_w as usize);
+                                for x in 0..self.img_w {
+                                    let mut px = Pixel::zero();
+
+                                    for _ in 0..self.rays_per_pixel {
+                                        let ray = self.get_ray(x, y as u32, &mut rng);
+                                        px = px
+                                            + self.color_ray(
+                                                &ray,
+                                                world.clone(),
+                                                self.max_bounces,
+                                                &mut rng,
+                                            );
+                                    }
+
+                                    px = px / self.rays_per_pixel as f64;
+
+                                    px.x = map_rgb(linear_to_gamma(px.x));
+                                    px.y = map_rgb(linear_to_gamma(px.y));
+                                    px.z = map_rgb(linear_to_gamma(px.z));
+
+                                    row.push(px);
+                                }
+                                rows.push((y, row));
+                            }
+                            rows
+                        }
+                    })
+                })
+                .collect();
+
+            handles
+                .into_iter()
+                .map(|h| h.join().expect("Thread panicked"))
+                .flatten()
+                .collect::<Vec<(usize, Vec<Pixel>)>>()
+        });
+
+        pixels.sort_by_key(|(y, _)| *y);
+
+        let end = start.elapsed().as_secs_f64();
+        println!("Computed rays in {:.2} seconds", end);
 
         let mut image = ImageBuffer::new(self.img_w, self.img_h);
 
-        for y in 0..self.img_h {
-            for x in 0..self.img_w {
-                let mut px = Pixel::zero();
-                let rng = &mut self.rng.borrow_mut();
-
-                for _ in 0..self.rays_per_pixel {
-                    let ray = self.get_ray(x, y, rng);
-                    px = px + self.color_ray(&ray, world.clone(), self.max_bounces, rng);
-                }
-
-                px = px / self.rays_per_pixel as f64;
-
-                px.x = map_rgb(linear_to_gamma(px.x));
-                px.y = map_rgb(linear_to_gamma(px.y));
-                px.z = map_rgb(linear_to_gamma(px.z));
-
-                image.put_pixel(x, y, Rgb::from([px.x as u8, px.y as u8, px.z as u8]));
-            }
-
-            let scanline = y + 1;
-            if scanline % 100 == 0 {
-                println!("Scanlines processed: {}/{}", scanline, self.img_h);
+        for (y, row) in pixels.into_iter() {
+            for (x, px) in row.into_iter().enumerate() {
+                image.put_pixel(
+                    x as u32,
+                    y as u32,
+                    Rgb::from([px.x as u8, px.y as u8, px.z as u8]),
+                );
             }
         }
 
@@ -177,7 +239,7 @@ impl<R: Rng> Camera<R> {
     fn color_ray(
         &self,
         ray: &Ray3,
-        world: Rc<dyn Hittable>,
+        world: Arc<dyn Hittable<R>>,
         bounces_left: u32,
         rng: &mut R,
     ) -> Pixel {
@@ -190,7 +252,7 @@ impl<R: Rng> Camera<R> {
             max: f64::INFINITY,
         };
 
-        if let Some(hit) = world.hit(&ray, &mut t_range) {
+        if let Some(hit) = world.hit(&ray, &mut t_range, rng) {
             // if we hit an emissive material we won't scatter and we will directly return the
             // emissive color up the stack
             let emission_color = hit.mat.emit(hit.uv, &hit.p);
@@ -250,18 +312,48 @@ impl<R: Rng> Camera<R> {
     }
 }
 
-impl Default for Camera<ThreadRng> {
-    fn default() -> Self {
-        Self::with_default_rng_and_pose(CameraIntrinsics::default())
+impl Camera<ThreadRng> {
+    pub fn new_default_rng(intrinsics: CameraIntrinsics, pose: CameraPose) -> Self {
+        Self::new(intrinsics, pose, None)
+    }
+
+    pub fn render(
+        &self,
+        world: Arc<dyn Hittable<ThreadRng>>,
+        path: impl AsRef<Path>,
+    ) -> RenderResult<()> {
+        let make_rng = |_| rand::rng();
+        self.render_with(world, path, make_rng)
     }
 }
 
-impl Camera<ThreadRng> {
-    pub fn with_default_rng(intrinsics: CameraIntrinsics, pose: CameraPose) -> Self {
-        Self::new(intrinsics, pose, rand::rng())
+impl Default for Camera<ThreadRng> {
+    fn default() -> Self {
+        Self::new_default_rng(CameraIntrinsics::default(), CameraPose::default())
+    }
+}
+
+impl Camera<SmallRng> {
+    pub fn new_seeded_rng(intrinsics: CameraIntrinsics, pose: CameraPose, seed: u64) -> Self {
+        Self::new(intrinsics, pose, Some(seed))
     }
 
-    pub fn with_default_rng_and_pose(intrinsics: CameraIntrinsics) -> Self {
-        Self::with_default_rng(intrinsics, CameraPose::default())
+    pub fn render(
+        &self,
+        world: Arc<dyn Hittable<SmallRng>>,
+        path: impl AsRef<Path>,
+    ) -> RenderResult<()> {
+        let base_seed = self.rng_base_seed.expect("No RNG seed");
+        let make_rng = move |tid| {
+            let thread_seed = base_seed.wrapping_add(tid);
+            SmallRng::seed_from_u64(thread_seed)
+        };
+        self.render_with(world, path, make_rng)
+    }
+}
+
+impl Default for Camera<SmallRng> {
+    fn default() -> Self {
+        Self::new_seeded_rng(CameraIntrinsics::default(), CameraPose::default(), 316u64)
     }
 }

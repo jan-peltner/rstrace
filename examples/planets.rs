@@ -14,7 +14,7 @@ fn main() {
     intrinsics.background = Color::zero();
 
     let pose = CameraPose::default();
-    let camera = Camera::with_default_rng(intrinsics, pose);
+    let camera = Camera::new_default_rng(intrinsics, pose);
 
     // --- Textures ---
     let earth_tex = ImageTex::new("assets/textures/earth.jpg").unwrap();
@@ -33,7 +33,7 @@ fn main() {
     }));
 
     // --- Geometry ---
-    let earth = Sphere::new_rc(
+    let earth = Sphere::new_arc(
         0.5,
         Point {
             x: -1.5,
@@ -43,7 +43,7 @@ fn main() {
         earth_mat,
     );
 
-    let mars = Sphere::new_rc(
+    let mars = Sphere::new_arc(
         0.5,
         Point {
             x: 0.0,
@@ -53,7 +53,7 @@ fn main() {
         mars_mat,
     );
 
-    let moon = Sphere::new_rc(
+    let moon = Sphere::new_arc(
         0.5,
         Point {
             x: 1.5,
@@ -63,7 +63,7 @@ fn main() {
         moon_mat,
     );
 
-    let light = Quad::new_rc(
+    let light = Quad::new_arc(
         Point {
             x: -2.0,
             y: 1.5,
@@ -82,7 +82,7 @@ fn main() {
         light_mat,
     );
 
-    let world_floor = Sphere::new_rc(
+    let world_floor = Sphere::new_arc(
         100.0,
         Point {
             x: 0.0,
