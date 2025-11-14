@@ -84,7 +84,7 @@ pub struct Camera<R: Rng> {
 }
 
 impl<R: Rng> Camera<R> {
-    pub fn new(intrinsics: CameraIntrinsics, pose: CameraPose, seed: Option<u64>) -> Self {
+    fn new(intrinsics: CameraIntrinsics, pose: CameraPose, seed: Option<u64>) -> Self {
         let img_h = Interval {
             min: 1.0,
             max: f64::INFINITY,
@@ -147,7 +147,7 @@ impl<R: Rng> Camera<R> {
         }
     }
 
-    pub fn render_with<F>(
+    fn render_with<F>(
         &self,
         world: Arc<dyn Hittable<R>>,
         path: impl AsRef<Path>,
