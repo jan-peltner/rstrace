@@ -30,7 +30,7 @@ fn main() {
     };
 
     let camera = Camera::new_default_rng(intrinsics, pose);
-    let mut rng = rand::rng();
+    let mut rng = camera.get_rng();
 
     // --- World ---
     let mut world = Hittables::new();

@@ -325,6 +325,10 @@ impl Camera<ThreadRng> {
         let make_rng = |_| rand::rng();
         self.render_with(world, path, make_rng)
     }
+
+    pub fn get_rng(&self) -> ThreadRng {
+        rand::rng()
+    }
 }
 
 impl Default for Camera<ThreadRng> {
@@ -349,6 +353,10 @@ impl Camera<SmallRng> {
             SmallRng::seed_from_u64(thread_seed)
         };
         self.render_with(world, path, make_rng)
+    }
+
+    pub fn get_rng(&self) -> SmallRng {
+        SmallRng::seed_from_u64(self.rng_base_seed.expect("No RNG seed"))
     }
 }
 

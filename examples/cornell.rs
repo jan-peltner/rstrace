@@ -29,6 +29,7 @@ fn main() {
     };
 
     let camera = Camera::new_default_rng(intrinsics, pose);
+    let mut rng = camera.get_rng();
 
     let red = Lambertian::new(SolidTex::new(Color {
         x: 0.65,
@@ -212,7 +213,7 @@ fn main() {
     // world.extend(front_box);
     // world.extend(back_box);
 
-    let world_root = BvhNode::from_hittables(&mut world.objects, &mut rand::rng());
+    let world_root = BvhNode::from_hittables(&mut world.objects, &mut rng);
 
     // --- Render ---
     let _ = camera.render(world_root, "cornell.ppm");
