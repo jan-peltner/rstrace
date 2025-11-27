@@ -10,8 +10,8 @@ use rstrace::vec::*;
 fn main() {
     // --- Camera ---
     let mut intrinsics = CameraIntrinsics::default();
-    intrinsics.max_bounces = 50;
-    intrinsics.rays_per_pixel = 1000;
+    intrinsics.max_bounces = 10;
+    intrinsics.rays_per_pixel = 100;
     intrinsics.background = Color::zero();
     intrinsics.img_w = 1000;
 
@@ -113,5 +113,5 @@ fn main() {
     let world_root = BvhNode::from_hittables(&mut world.objects, &mut rng);
 
     // --- Render ---
-    let _ = camera.render(world_root, "planets3.png");
+    let _ = camera.render(world_root, "planets4.png");
 }
