@@ -2,7 +2,7 @@ use rand::rngs::ThreadRng;
 use rstrace::bvh::BvhNode;
 use rstrace::camera::Camera;
 use rstrace::geometry::{Sphere, Triangle};
-use rstrace::material::{Lambertian, Metal};
+use rstrace::material::Lambertian;
 use rstrace::ray::Hittables;
 use rstrace::texture::SolidTex;
 use rstrace::vec::*;
